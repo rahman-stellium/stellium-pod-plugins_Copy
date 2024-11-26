@@ -7,7 +7,7 @@ sap.ui.define([
     function (Controller) {
         "use strict";
 
-        return Controller.extend("stellium.ext.viewplugins.controller.MainView", {
+        return Controller.extend("stellium.ext.podplugins.controller.MainView", {
             onInit: function () {
 
             }

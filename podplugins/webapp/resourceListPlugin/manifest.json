@@ -1,6 +1,6 @@
 {
     "sap.app": {
-        "id": "stellium.ext.viewplugins.resourceListPlugin",
+        "id": "stellium.ext.podplugins.resourceListPlugin",
         "type": "component",
         "applicationVersion": {
             "version": "1.0.0"
@@ -10,7 +10,7 @@
 
     "sap.ui5": {
         "rootView": {
-            "viewName": "stellium.ext.viewplugins.resourceListPlugin.view.PluginView",
+            "viewName": "stellium.ext.podplugins.resourceListPlugin.view.PluginView",
             "type": "XML",
             "id": "resourceListPlugin"
         },
@@ -23,7 +23,7 @@
             "i18n": {
                 "type": "sap.ui.model.resource.ResourceModel",
                 "settings": {
-                    "bundleName": "stellium.ext.viewplugins.resourceListPlugin.i18n.i18n"
+                    "bundleName": "stellium.ext.podplugins.resourceListPlugin.i18n.i18n"
                 }
             }
         }

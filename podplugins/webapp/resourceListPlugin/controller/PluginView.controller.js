@@ -7,7 +7,7 @@ sap.ui.define([
 
     var oLogger = Log.getLogger("resourceListPlugin", Log.Level.INFO);
     
-    var oPluginViewController = PluginViewController.extend("stellium.ext.viewplugins.resourceListPlugin.controller.PluginView", {
+    var oPluginViewController = PluginViewController.extend("stellium.ext.podplugins.resourceListPlugin.controller.PluginView", {
         metadata: {
             properties: {
             }

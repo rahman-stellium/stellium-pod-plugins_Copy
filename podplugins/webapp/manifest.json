@@ -1,7 +1,7 @@
 {
     "_version": "1.12.0",
     "sap.app": {
-        "id": "stellium.ext.viewplugins",
+        "id": "stellium.ext.podplugins",
         "type": "application",
         "i18n": "i18n/i18n.properties",
         "applicationVersion": {
@@ -33,7 +33,7 @@
     "sap.ui5": {
         "flexEnabled": false,
         "rootView": {
-            "viewName": "stellium.ext.viewplugins.view.MainView",
+            "viewName": "stellium.ext.podplugins.view.MainView",
             "type": "XML",
             "async": true,
             "id": "MainView"
@@ -54,7 +54,7 @@
             "i18n": {
                 "type": "sap.ui.model.resource.ResourceModel",
                 "settings": {
-                    "bundleName": "stellium.ext.viewplugins.i18n.i18n"
+                    "bundleName": "stellium.ext.podplugins.i18n.i18n"
                 }
             }
         },
@@ -68,7 +68,7 @@
                 "routerClass": "sap.m.routing.Router",
                 "viewType": "XML",
                 "async": true,
-                "viewPath": "stellium.ext.viewplugins.view",
+                "viewPath": "stellium.ext.podplugins.view",
                 "controlAggregation": "pages",
                 "controlId": "app",
                 "clearControlAggregation": false

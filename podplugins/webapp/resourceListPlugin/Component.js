@@ -6,7 +6,7 @@ sap.ui.define([
     /**
      * 
      */
-    var Component = ProductionUIComponent.extend("stellium.ext.viewplugins.resourceListPlugin.Component", {
+    var Component = ProductionUIComponent.extend("stellium.ext.podplugins.resourceListPlugin.Component", {
         metadata : {
             manifest : "json"
         }
