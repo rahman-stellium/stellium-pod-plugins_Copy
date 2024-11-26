@@ -1,0 +1,14 @@
+{
+    "components" : [
+        {
+            "id": "stelliumResourceListPlugin",
+            "type": "VIEW_PLUGIN",
+            "allowMultipleInstances": false,
+            "name": "stellium.ext.viewplugins.resourceListPlugin",
+            "propertyEditor": "stellium.ext.viewplugins.resourceListPlugin.builder.PropertyEditor",
+            "i18n": "stellium.ext.viewplugins.resourceListPlugin.i18n.i18n",
+            "productionProcessEnabled": false,
+            "supportedPodTypes": ["WORK_CENTER","OPERATION", "ORDER", "OTHER", "MONITOR"]
+        }
+    ]
+}
