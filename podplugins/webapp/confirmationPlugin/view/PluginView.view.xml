@@ -1,0 +1,13 @@
+<mvc:View 
+    xmlns:l="sap.ui.layout" 
+    xmlns:mvc="sap.ui.core.mvc" 
+    xmlns="sap.m" 
+    controllerName="stellium.ext.podplugins.confirmationPlugin.controller.PluginView" 
+    width="100%" 
+    height="100%">
+    <Panel id="podModelPluginPanel" width="100%" height="100%" expandable="false" expanded="true" accessibleRole="Region" backgroundDesign="Transparent">
+        <content>
+           <Title id="idTestTitle" level="H2" text="Confirmation Plugin" />
+        </content>
+    </Panel>
+</mvc:View>
