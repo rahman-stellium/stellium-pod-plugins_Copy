@@ -636,6 +636,211 @@ sap.ui.define(
           );
         },
 
+        handleSearchForReasonCodeDialog: function(oEvent) {
+          var properties = ['ID', 'description', 'reasonForVariance'];
+          var oValue = oEvent.getSource().getValue();
+          var resourceList = sap.ui
+            .getCore()
+            .byId(sap.ui.core.Fragment.createId('selectReasonCodeDialog', 'reasonCodeTreeTable'))
+            .getBinding('rows');
+
+          this.handleSearch(oValue, properties, resourceList);
+        },
+
+        handleSearch: function(oValue, propertiesArray, oBinding) {
+          var reasonCodeTable = sap.ui
+            .getCore()
+            .byId(sap.ui.core.Fragment.createId('selectReasonCodeDialog', 'reasonCodeTreeTable'));
+
+          if (!oValue) {
+            reasonCodeTable.getModel('oReasonCodeModel').setData(this.allList);
+          } else {
+            var list = this.matchTreeData(this.allList.timeElementReasonCodeTree, oValue);
+            reasonCodeTable.getModel('oReasonCodeModel').setData({
+              timeElementReasonCodeTree: list
+            });
+            reasonCodeTable.expandToLevel(10);
+          }
+        },
+
+        onSelectReasonCode: function() {
+          var oTable, oPath, selectedObject, oSaveButton, oIndices;
+          oTable = sap.ui
+            .getCore()
+            .byId(sap.ui.core.Fragment.createId('selectReasonCodeDialog', 'reasonCodeTreeTable'));
+          oSaveButton = sap.ui.getCore().byId(sap.ui.core.Fragment.createId('selectReasonCodeDialog', 'saveButton'));
+          oIndices = oTable.getSelectedIndices();
+          if (oIndices.length >= 1) {
+            jQuery.each(oIndices, function(oIndex, oObj) {
+              oPath = oTable.getContextByIndex(oObj).sPath;
+              selectedObject = oTable.getModel('oReasonCodeModel').getProperty(oPath);
+              if (selectedObject.timeElementReasonCodeTree) {
+                oSaveButton.setEnabled(false);
+                return false;
+              }
+              oSaveButton.setEnabled(true);
+            });
+          } else if (oIndices.length === 0) {
+            oSaveButton.setEnabled(false);
+          }
+        },
+
+        matchTreeData: function(arr, searchCon) {
+          var newArr = [];
+          var searchNameList = ['description', 'ID', 'reasonForVariance'];
+          arr.forEach(item => {
+            for (var i = 0, len = searchNameList.length; i < len; i++) {
+              var nameKey = searchNameList[i];
+              if (item.hasOwnProperty(nameKey)) {
+                if (item[nameKey] && item[nameKey].toLowerCase().indexOf(searchCon.toLowerCase()) !== -1) {
+                  newArr.push(item);
+                  break;
+                } else {
+                  if (item.timeElementReasonCodeTree && item.timeElementReasonCodeTree.length > 0) {
+                    var resultArr = this.matchTreeData(item.timeElementReasonCodeTree, searchCon);
+                    if (resultArr && resultArr.length > 0) {
+                      item.timeElementReasonCodeTree = resultArr;
+                      newArr.push(item);
+                      break;
+                    }
+                  }
+                }
+              } else {
+                continue;
+              }
+            }
+          });
+          return newArr;
+        },
+
+        onClickSave: function(oEvent) {
+          var selectedObjects, oMinLevelSelected, oIndex;
+          var reasonCodesToBeAssigned = [];
+          selectedObjects = this.getSelectedObjects();
+          if (selectedObjects.length > 0) {
+            selectedObjects.sort(function(a, b) {
+              return a.level - b.level;
+            });
+            oMinLevelSelected = selectedObjects[0].level;
+            for (oIndex = selectedObjects.length - 1; oIndex >= 0; oIndex--) {
+              if (selectedObjects[oIndex].level === oMinLevelSelected) {
+                reasonCodesToBeAssigned.push(selectedObjects[oIndex]);
+                selectedObjects.splice(oIndex, 1);
+              }
+            }
+
+            // Remove Child Reason Codes If Parent Exists
+            reasonCodesToBeAssigned = this.updateReasonCodeObject(selectedObjects, reasonCodesToBeAssigned);
+            this.prepareAssignReasonCodeRequest(reasonCodesToBeAssigned, false);
+          }
+          if (this.selectReasonCodeDialog) {
+            sap.ui
+              .getCore()
+              .byId(sap.ui.core.Fragment.createId('selectReasonCodeDialog', 'searchBarReasonCode'))
+              .setValue('');
+          }
+          oEvent.getSource().getParent().close();
+        },
+
+        onClickCancel: function(oEvent) {
+          // Clear Search Bar value on Reason Code Dialog - if any
+          if (this.selectReasonCodeDialog) {
+            sap.ui
+              .getCore()
+              .byId(sap.ui.core.Fragment.createId('selectReasonCodeDialog', 'searchBarReasonCode'))
+              .setValue('');
+          }
+
+          if (this.uploadCSVDialog) {
+            sap.ui.getCore().byId(sap.ui.core.Fragment.createId('uploadCSVDialog', 'fileUploader')).clear();
+          }
+
+          oEvent.getSource().getParent().close();
+        },
+
+        getSelectedObjects: function() {
+          var oTable, oSelectedIndices, oIndex, oPath, selectedObject;
+          var selectedObjects = [];
+          oTable = sap.ui
+            .getCore()
+            .byId(sap.ui.core.Fragment.createId('selectReasonCodeDialog', 'reasonCodeTreeTable'));
+          oSelectedIndices = oTable.getSelectedIndices();
+          for (var i = 0; i < oSelectedIndices.length; i++) {
+            oIndex = oSelectedIndices[i];
+            if (oTable.isIndexSelected(oIndex)) {
+              oPath = oTable.getContextByIndex(oIndex).sPath;
+              selectedObject = oTable.getModel('oReasonCodeModel').getProperty(oPath);
+              selectedObjects.push(selectedObject);
+            }
+          }
+          return selectedObjects;
+        },
+
+        updateReasonCodeObject: function(objectsforComparison, finalReasonCodeObject) {
+          var oIndex;
+          if (objectsforComparison.length > 0) {
+            for (oIndex = 0; oIndex < finalReasonCodeObject.length; oIndex++) {
+              objectsforComparison = _removeChildReasonCodeIfExists(
+                finalReasonCodeObject[oIndex],
+                objectsforComparison
+              );
+            }
+            finalReasonCodeObject = finalReasonCodeObject.concat(objectsforComparison);
+          }
+          return finalReasonCodeObject;
+
+          function _removeChildReasonCodeIfExists(parentObject, objectsToBeParsed) {
+            var counter;
+            if (parentObject.timeElementReasonCodeTree) {
+              for (counter = parentObject.timeElementReasonCodeTree.length - 1; counter >= 0; counter--) {
+                objectsToBeParsed = _removeChildReasonCodeIfExists(
+                  parentObject.timeElementReasonCodeTree[counter],
+                  objectsToBeParsed
+                );
+                objectsToBeParsed = _removeChildReasonCodes(objectsToBeParsed, parentObject, counter);
+              }
+            }
+            return objectsToBeParsed;
+          }
+
+          function _removeChildReasonCodes(objectsToBeParsed, parentObject, counter) {
+            var oIndx;
+            for (oIndx = objectsToBeParsed.length - 1; oIndx >= 0; oIndx--) {
+              if (
+                parentObject.timeElementReasonCodeTree[counter].reasonCodeHandle ===
+                objectsToBeParsed[oIndx].reasonCodeHandle
+              ) {
+                objectsToBeParsed.splice(oIndx, 1);
+              }
+            }
+            return objectsToBeParsed;
+          }
+        },
+
+        prepareAssignReasonCodeRequest: function(reasonCodeToBeAssigned, machineCodeSave) {
+          var reasonCodeKey = reasonCodeToBeAssigned[0].reasonCodeHandle.split(',');
+          this.getView().getModel('postModel').setProperty('/reasonCodeKey', reasonCodeKey[1]);
+          this.getView().getModel('postModel').setProperty('/description', reasonCodeToBeAssigned[0].description);
+          this.getView().getModel('postModel').setProperty('/reasonCode', reasonCodeToBeAssigned[0].ID);
+          var request = { resourceRCAssignments: [] };
+          var dummyObject;
+          var that = this;
+
+          if (reasonCodeToBeAssigned.length > 0) {
+            jQuery.each(reasonCodeToBeAssigned, function(oIndex, oObject) {
+              dummyObject = {
+                resource: {},
+                resourceReasonCode: {}
+              };
+              dummyObject.resourceReasonCode.ref = oObject.reasonCodeHandle;
+              dummyObject.resource.ref = that.selectedResourceRef;
+              dummyObject.machineCode = oObject.machineCode;
+
+              request.resourceRCAssignments.push(dummyObject);
+            });
+          }
+        },
+
         prepareDataForBinding: function(data) {
           var transformedObject;
           if (data) {
