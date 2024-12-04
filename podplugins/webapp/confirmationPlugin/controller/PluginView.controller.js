@@ -4,9 +4,10 @@ sap.ui.define(
     'sap/dm/dme/podfoundation/controller/PluginViewController',
     'sap/base/Log',
     'sap/ui/core/format/NumberFormat',
-    'sap/ui/core/Fragment'
+    'sap/ui/core/Fragment',
+    './../utils/formatter'
   ],
-  function(JSONModel, PluginViewController, Log, NumberFormat, Fragment) {
+  function(JSONModel, PluginViewController, Log, NumberFormat, Fragment, Formatter) {
     'use strict';
 
     var oLogger = Log.getLogger('confirmationPlugin', Log.Level.INFO);
@@ -17,6 +18,8 @@ sap.ui.define(
         metadata: {
           properties: {}
         },
+
+        oFormatter: Formatter,
 
         reasonCodeData: {
           timeElementReasonCodeTree: []
@@ -178,22 +181,6 @@ sap.ui.define(
               that.byId('quantityConfirmationTable').setBusy(false);
             }
           );
-        },
-
-        showValueWithUom: function(sValue, sUOM) {
-          if (!sValue) {
-            return '0';
-          }
-
-          let oIntNumberFormat = NumberFormat.getIntegerInstance({
-            groupingEnabled: true,
-            style: 'standard',
-            parseAsString: true
-          });
-
-          var iFormattedValue = oIntNumberFormat.format(sValue.toString());
-
-          return sUOM ? `${iFormattedValue} ${sUOM}` : iFormattedValue;
         },
 
         onOpenReportQuantityDialog: function(oEvent) {
