@@ -18,6 +18,10 @@ sap.ui.define(
           properties: {}
         },
 
+        reasonCodeData: {
+          timeElementReasonCodeTree: []
+        },
+
         onInit: function() {
           if (PluginViewController.prototype.onInit) {
             PluginViewController.prototype.onInit.apply(this, arguments);
@@ -54,6 +58,8 @@ sap.ui.define(
           var oQuantityPostModel = new JSONModel(this.postData);
           this.getView().setModel(oQuantityPostModel, 'postModel');
           this.getView().setModel(new JSONModel({ value: [] }), 'quantitiesModel');
+
+          this.prepareBusyDialog();
         },
 
         /**
@@ -80,6 +86,17 @@ sap.ui.define(
         onBeforeRendering: function() {},
 
         onAfterRendering: function() {},
+
+        prepareBusyDialog: function() {
+          if (!this.busyDialog) {
+            sap.ui.require(
+              ['sap/m/BusyDialog'],
+              function(BusyDialog) {
+                this.busyDialog = new BusyDialog('busyDialogForReasonCode');
+              }.bind(this)
+            );
+          }
+        },
 
         getQuantityConfirmationData: function(sChannelId, sEventId, oData) {
           var oPodSelectionModel = this.getPodSelectionModel();
@@ -183,6 +200,8 @@ sap.ui.define(
           var oView = this.getView(),
             oPostModel = oView.getModel('postModel'),
             oData = oEvent.getSource().getBindingContext('quantitiesModel').getObject();
+
+          this.callServiceForTimeElementDesc();
 
           oPostModel.setProperty('/reasonCodeKey', '');
           oPostModel.setProperty('/description', '');
@@ -316,6 +335,314 @@ sap.ui.define(
             }
           }
           sap.ui.getCore().getMessageManager().removeAllMessages();
+        },
+
+        handleReasonCode: function() {
+          var that = this;
+
+          //Load the fragment
+          if (this.selectReasonCodeDialog === undefined) {
+            this.selectReasonCodeDialog = sap.ui.xmlfragment(
+              'selectReasonCodeDialog',
+              'stellium.ext.podplugins.confirmationPlugin.view.fragments.SelectReasonCodeDialog',
+              this
+            );
+            this.getView().addDependent(this.selectReasonCodeDialog);
+          }
+
+          this.selectReasonCodeDialog.open();
+
+          setTimeout(function() {
+            that.prepareReasonCodeTable();
+            var dialogForSelectCode = sap.ui
+              .getCore()
+              .byId(sap.ui.core.Fragment.createId('selectReasonCodeDialog', 'dialogForSelectCode'));
+            dialogForSelectCode.setBusy(false);
+          }, 3000);
+        },
+        handleSearchForReasonCodeDialog: function(oEvent) {
+          var properties = ['ID', 'description', 'reasonForVariance'];
+          var oValue = oEvent.getSource().getValue();
+          var resourceList = sap.ui
+            .getCore()
+            .byId(sap.ui.core.Fragment.createId('selectReasonCodeDialog', 'reasonCodeTreeTable'))
+            .getBinding('rows');
+
+          this.handleSearch(oValue, properties, resourceList);
+        },
+        handleSearchForReasonCodeUpdateDialog: function(oEvent) {
+          let oValue = oEvent.getSource().getValue();
+          let reasonCodeTable = this.updateReasonCodeDialog.getContent()[0];
+          if (!oValue) {
+            reasonCodeTable.getModel('oReasonCodeModel').setData(this.allList);
+          } else {
+            let list = this.matchTreeData(this.allList.timeElementReasonCodeTree, oValue);
+            reasonCodeTable.getModel('oReasonCodeModel').setData({
+              timeElementReasonCodeTree: list
+            });
+            reasonCodeTable.expandToLevel(10);
+          }
+        },
+        handleSearchForReasonCodeSearch: function(oEvent) {
+          var clearButtonPressed = oEvent.getParameters('clearButtonPressed');
+          if (clearButtonPressed) {
+            var oView = this.getView();
+            oView.getModel('postModel').setProperty('/reasonCodeKey', '');
+            oView.getModel('postModel').setProperty('/description', '');
+            oView.getModel('postModel').setProperty('/reasonCode', '');
+            oEvent.getSource().setValue('');
+            oView.getModel('postModel').refresh();
+          }
+        },
+        prepareReasonCodeTable: function() {
+          var oReasonCodeModel, reasonCodeTable;
+
+          if (this.listOfTimeElementAndDesc) {
+            this.getReasonCodesForTimeElement();
+            this.prepareDataForBinding(this.listOfTimeElementAndDesc);
+            if (oReasonCodeModel === undefined) {
+              oReasonCodeModel = new JSONModel(this.reasonCodeData);
+              reasonCodeTable = sap.ui
+                .getCore()
+                .byId(sap.ui.core.Fragment.createId('selectReasonCodeDialog', 'reasonCodeTreeTable'));
+              reasonCodeTable.setModel(oReasonCodeModel, 'oReasonCodeModel');
+              if (this.reasonTree.length > 0) {
+                var arr = [];
+                var that = this;
+                for (var index = 0; index < this.reasonTree.length; index++) {
+                  this.path = [];
+                  this.assignedCodeSelectionLoop(this.reasonTree[index].resourceReasonCodeNodeCollection);
+                  var aData = this.path;
+                  for (var j = 0; j < aData.length; j++) {
+                    this.child = [];
+                    var elem = aData[j];
+                    var code = this.appendReasonCode(elem);
+                    this.getReasonCodesForChild(elem.timeElement.ref, code);
+                    aData[j] = this.child[0];
+                  }
+                  aData.typeOfData = 'reasonCodeObject';
+                  var reasonCodeNestedObject = this.transformData(aData);
+                  // parent.timeElementReasonCodeTree = reasonCodeNestedObject;
+                  arr = arr.concat(reasonCodeNestedObject);
+                }
+                reasonCodeTable = sap.ui
+                  .getCore()
+                  .byId(sap.ui.core.Fragment.createId('selectReasonCodeDialog', 'reasonCodeTreeTable'));
+                oReasonCodeModel.setData({
+                  timeElementReasonCodeTree: arr
+                });
+                reasonCodeTable.getModel('oReasonCodeModel').checkUpdate();
+              } else {
+                for (var index = 0; index < this.reasonCodeData.timeElementReasonCodeTree.length; index++) {
+                  var element = this.reasonCodeData.timeElementReasonCodeTree[index];
+                  this.getReasonCodesForTimeElementForNotSource(element);
+                }
+              }
+
+              this.allList = reasonCodeTable.getModel('oReasonCodeModel').getData();
+              reasonCodeTable.getModel('oReasonCodeModel').checkUpdate();
+            }
+          }
+        },
+        appendReasonCode: function(elem) {
+          this.rCodeString = '';
+          for (var i = 0; i < 8; i++) {
+            var rCode = elem['reasonCode' + (i + 1)];
+            if (rCode) {
+              this.rCodeString += '&reasonCode' + (i + 1) + '=' + rCode;
+            }
+          }
+          return this.rCodeString;
+        },
+        assignedCodeSelectionLoop: function(obj) {
+          for (var k in obj) {
+            if (obj[k].description != null) {
+              this.path.push(obj[k]);
+            } else {
+              this.assignedCodeSelectionLoop(obj[k].resourceReasonCodeNodeCollection);
+            }
+          }
+        },
+
+        transformData: function(dataObject) {
+          var transformedDataObject, oIndex;
+          var transformedArray = [];
+          this.leafs = [];
+          if (dataObject) {
+            for (oIndex = 0; oIndex < dataObject.length; oIndex++) {
+              transformedDataObject = {};
+              if (dataObject[oIndex].ref) {
+                if (dataObject.typeOfData === 'timeElementObject') {
+                  transformedDataObject.description = dataObject[oIndex].description;
+                  transformedDataObject.typeOfElement = 'timeElement';
+                  transformedDataObject.timeElementHandle = dataObject[oIndex].ref;
+                  transformedDataObject.timeElementReasonCodeTree = [{}];
+                } else if (dataObject.typeOfData === 'reasonCodeObject') {
+                  transformedDataObject.ID = this.getReasonCodeID(dataObject[oIndex]);
+                  transformedDataObject.level = dataObject[oIndex].level;
+                  transformedDataObject.description = dataObject[oIndex].description;
+                  transformedDataObject.typeOfElement = 'reasonCode';
+                  transformedDataObject.reasonForVariance = dataObject[oIndex].reasonForVariance;
+                  transformedDataObject.timeElementHandle = dataObject[oIndex].timeElementRef;
+                  transformedDataObject.reasonCodeHandle = dataObject[oIndex].ref;
+                  this.getReasonCodeObject(dataObject[oIndex], transformedDataObject);
+                  // if (!transformedDataObject.timeElementReasonCodeTree) {
+                  //   this.leafs.push(transformedDataObject);
+                  // }
+                }
+              }
+              if (!jQuery.isEmptyObject(transformedDataObject)) {
+                transformedArray.push(transformedDataObject);
+              }
+            }
+            return transformedArray;
+          }
+        },
+        getReasonCodeObject: function(object, transformedDataObject) {
+          var nestedReasonCodeObject;
+          if (object.resourceReasonCodeNodeCollection.length > 0) {
+            nestedReasonCodeObject = this.getNestedReasonCodeObject(object.resourceReasonCodeNodeCollection);
+            transformedDataObject.timeElementReasonCodeTree = nestedReasonCodeObject;
+          }
+          return transformedDataObject;
+        },
+
+        getReasonCodeID: function(reasonCodeObject) {
+          var stringBuilder, oIndex;
+          if (reasonCodeObject) {
+            for (oIndex = 10; oIndex > 0; oIndex--) {
+              stringBuilder = 'reasonCode' + oIndex;
+              if (reasonCodeObject[stringBuilder]) {
+                reasonCodeObject.level = oIndex;
+                return reasonCodeObject[stringBuilder];
+              }
+            }
+          }
+        },
+
+        getNestedReasonCodeObject: function(reasonCodeNestedObject) {
+          var transformedNestedArray = [];
+          if (reasonCodeNestedObject) {
+            reasonCodeNestedObject.typeOfData = 'reasonCodeObject';
+            transformedNestedArray = this.transformData(reasonCodeNestedObject);
+          }
+          return transformedNestedArray;
+        },
+
+        getReasonCodesForTimeElement: function() {
+          var reasonCodeNestedObject, oUrl, reasonCodeTable;
+          oUrl =
+            this.getPlantRestDataSourceUri() +
+            'reasonCodeAssignment/assignedReasonCodes?resource.resource=' +
+            this.resource +
+            '&timeElementTypeId.ref=TimeElementTypeBO:' +
+            this.plant +
+            ',QUAL_LOSS';
+          $.ajaxSettings.async = false;
+          this.ajaxGetRequest(
+            oUrl,
+            null,
+            function(oData) {
+              this.reasonTree = oData.resourceReasonCodeNodeCollection;
+            }.bind(this),
+            function(errorObject) {
+              this.errorHandler(errorObject);
+            }.bind(this)
+          );
+          $.ajaxSettings.async = true;
+        },
+        getReasonCodesForChild: function(ref, code) {
+          var reasonCodeNestedObject, oUrl, reasonCodeTable;
+          oUrl = this.getPlantRestDataSourceUri() + 'resourceReasonCodes?timeElement.ref=' + ref + code;
+          $.ajaxSettings.async = false;
+          this.ajaxGetRequest(
+            oUrl,
+            null,
+            function(oData) {
+              this.child = oData;
+            }.bind(this),
+            function(errorObject) {
+              this.errorHandler(errorObject);
+            }.bind(this)
+          );
+          $.ajaxSettings.async = true;
+        },
+        getReasonCodesForTimeElementForNotSource: function(inputObject) {
+          var reasonCodeNestedObject, oUrl, reasonCodeTable;
+          oUrl =
+            this.getPlantRestDataSourceUri() +
+            'resourceReasonCodes?timeElement.ref=' +
+            jQuery.sap.encodeURL(inputObject.timeElementHandle);
+          $.ajaxSettings.async = false;
+          this.ajaxGetRequest(
+            oUrl,
+            null,
+            function(oData) {
+              oData.typeOfData = 'reasonCodeObject';
+              reasonCodeNestedObject = this.transformData(oData);
+              inputObject.timeElementReasonCodeTree = reasonCodeNestedObject;
+              reasonCodeTable = sap.ui
+                .getCore()
+                .byId(sap.ui.core.Fragment.createId('selectReasonCodeDialog', 'reasonCodeTreeTable'));
+              reasonCodeTable.getModel('oReasonCodeModel').checkUpdate();
+            }.bind(this),
+            function(errorObject) {
+              this.errorHandler(errorObject);
+            }.bind(this)
+          );
+          $.ajaxSettings.async = true;
+        },
+
+        getReasonCodesForTimeElementForNotSourceForUpdate: function(inputObject, reasonCodeTable) {
+          let reasonCodeNestedObject, oUrl;
+          oUrl =
+            this.getPlantRestDataSourceUri() +
+            'resourceReasonCodes?timeElement.ref=' +
+            jQuery.sap.encodeURL(inputObject.timeElementHandle);
+          $.ajaxSettings.async = false;
+          this.ajaxGetRequest(
+            oUrl,
+            null,
+            function(oData) {
+              oData.typeOfData = 'reasonCodeObject';
+              reasonCodeNestedObject = this.transformData(oData);
+              inputObject.timeElementReasonCodeTree = reasonCodeNestedObject;
+              reasonCodeTable.getModel('oReasonCodeModel').checkUpdate();
+            }.bind(this),
+            function(errorObject) {
+              this.errorHandler(errorObject);
+            }.bind(this)
+          );
+          $.ajaxSettings.async = true;
+        },
+
+        callServiceForTimeElementDesc: function() {
+          var oUrl =
+            this.getPlantRestDataSourceUri() +
+            'timeElements/findByType/TimeElementTypeBO:' +
+            this.plant +
+            ',QUAL_LOSS?status=ENABLED';
+          this.busyDialog.open();
+          this.ajaxGetRequest(
+            oUrl,
+            null,
+            function(oData) {
+              this.listOfTimeElementAndDesc = oData;
+              this.busyDialog.close();
+            }.bind(this),
+            function(errorObject) {
+              this.errorHandler(errorObject);
+            }.bind(this)
+          );
+        },
+
+        prepareDataForBinding: function(data) {
+          var transformedObject;
+          if (data) {
+            data.typeOfData = 'timeElementObject';
+            transformedObject = this.transformData(data);
+            this.reasonCodeData.timeElementReasonCodeTree = transformedObject;
+          }
         },
 
         onCloseReportQuantityDialog: function() {
