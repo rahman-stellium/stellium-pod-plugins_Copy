@@ -3,11 +3,11 @@ sap.ui.define(
     'sap/ui/model/json/JSONModel',
     'sap/dm/dme/podfoundation/controller/PluginViewController',
     'sap/base/Log',
-    'sap/ui/core/format/NumberFormat',
     'sap/ui/core/Fragment',
-    './../utils/formatter'
+    './../utils/formatter',
+    './../utils/ErrorHandler'
   ],
-  function(JSONModel, PluginViewController, Log, NumberFormat, Fragment, Formatter) {
+  function(JSONModel, PluginViewController, Log, Fragment, Formatter, ErrorHandler) {
     'use strict';
 
     var oLogger = Log.getLogger('confirmationPlugin', Log.Level.INFO);
@@ -865,10 +865,10 @@ sap.ui.define(
 
           this.byId('quantityConfirmBtn').setEnabled(false);
 
-          // ErrorHandler.clearErrorState(this.byId('yieldQuantity'));
-          // ErrorHandler.clearErrorState(this.byId('scrapQuantity'));
-          // ErrorHandler.clearErrorState(this.byId('postedBy'));
-          // ErrorHandler.clearErrorState(this.byId('postingDate'));
+          ErrorHandler.clearErrorState(this.byId('yieldQuantity'));
+          ErrorHandler.clearErrorState(this.byId('scrapQuantity'));
+          ErrorHandler.clearErrorState(this.byId('postedBy'));
+          ErrorHandler.clearErrorState(this.byId('postingDate'));
         },
 
         /***
@@ -883,7 +883,7 @@ sap.ui.define(
           if (value) {
             this.getView().byId('quantityConfirmBtn').setEnabled(true);
           }
-          // ErrorHandler.clearErrorState(oEvent.getSource());
+          ErrorHandler.clearErrorState(oEvent.getSource());
           if (this._endsWith(oEvent.getSource().getId(), 'yieldQuantity')) {
             quantity = oPostModel.getProperty('/yieldQuantity/value');
           } else {
@@ -903,9 +903,9 @@ sap.ui.define(
             (quantity && !this._validatePositiveNumber(quantity)) ||
             parseFloat(quantity) === 0
           ) {
-            // ErrorHandler.setErrorState(oEvent.getSource(), this.getI18nText('POSITIVE_INPUT'));
+            ErrorHandler.setErrorState(oEvent.getSource(), this.getI18nText('POSITIVE_INPUT'));
           } else {
-            // ErrorHandler.clearErrorState(oEvent.getSource());
+            ErrorHandler.clearErrorState(oEvent.getSource());
 
             var yieldQuantityValue = oPostModel.getProperty('/yieldQuantity/value');
             var scrapQuantityValue = oPostModel.getProperty('/scrapQuantity/value');
@@ -918,17 +918,12 @@ sap.ui.define(
         onYieldQuantityLiveChange: function(oEvent) {
           var oView = this.getView(),
             oPostModel = oView.getModel('postModel'),
-            value = oEvent.getSource().getValue(),
-            quantity = oPostModel.getProperty('/yieldQuantity/value');
+            value = oEvent.getSource().getValue();
 
-          if (
-            Number.isNaN(quantity) ||
-            (quantity && !this._validatePositiveNumber(quantity)) ||
-            parseFloat(quantity) === 0
-          ) {
-            // ErrorHandler.setErrorState(oEvent.getSource(), this.getI18nText('POSITIVE_INPUT'));
+          if (Number.isNaN(value) || (value && !this._validatePositiveNumber(value)) || parseFloat(value) === 0) {
+            ErrorHandler.setErrorState(oEvent.getSource(), this.getI18nText('POSITIVE_INPUT'));
           } else {
-            // ErrorHandler.clearErrorState(oEvent.getSource());
+            ErrorHandler.clearErrorState(oEvent.getSource());
 
             //!Move below logic to _enableConfirmButton
             var yieldQuantityValue = oPostModel.getProperty('/yieldQuantity/value');
@@ -942,15 +937,15 @@ sap.ui.define(
         onChangePostingDate: function(oEvent) {
           var inputFieldId = oEvent.getSource().getId();
           var inputPostingDate = oEvent.getSource().getValue();
-          // ErrorHandler.clearErrorState(oEvent.getSource());
+          ErrorHandler.clearErrorState(oEvent.getSource());
           this.getView().byId('quantityConfirmBtn').setEnabled(false);
           if (inputPostingDate > this.getCurrentDateInPlantTimeZone()) {
-            // ErrorHandler.setErrorState(
-            //   sap.ui.getCore().byId(inputFieldId),
-            //   this.getI18nText('FUTURE_DATE_NOT_ALLOWED')
-            // );
+            ErrorHandler.setErrorState(
+              sap.ui.getCore().byId(inputFieldId),
+              this.getI18nText('FUTURE_DATE_NOT_ALLOWED')
+            );
           } else {
-            // ErrorHandler.clearErrorState(oEvent.getSource());
+            ErrorHandler.clearErrorState(oEvent.getSource());
             this._enableConfirmButton();
           }
         },
@@ -966,17 +961,12 @@ sap.ui.define(
         onScrapQuantityLiveChange: function(oEvent) {
           var oView = this.getView(),
             oPostModel = oView.getModel('postModel'),
-            value = oEvent.getSource().getValue(),
-            quantity = oPostModel.getProperty('/scrapQuantity/value');
+            value = oEvent.getSource().getValue();
 
-          if (
-            Number.isNaN(quantity) ||
-            (quantity && !this._validatePositiveNumber(quantity)) ||
-            parseFloat(quantity) === 0
-          ) {
-            // ErrorHandler.setErrorState(oEvent.getSource(), this.getI18nText('POSITIVE_INPUT'));
+          if (Number.isNaN(value) || (value && !this._validatePositiveNumber(value)) || parseFloat(value) === 0) {
+            ErrorHandler.setErrorState(oEvent.getSource(), this.getI18nText('POSITIVE_INPUT'));
           } else {
-            // ErrorHandler.clearErrorState(oEvent.getSource());
+            ErrorHandler.clearErrorState(oEvent.getSource());
 
             //!Move below logic to _enableConfirmButton
             var yieldQuantityValue = oPostModel.getProperty('/yieldQuantity/value');
