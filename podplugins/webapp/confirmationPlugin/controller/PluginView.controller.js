@@ -4,10 +4,11 @@ sap.ui.define(
     'sap/dm/dme/podfoundation/controller/PluginViewController',
     'sap/base/Log',
     'sap/ui/core/Fragment',
+    'sap/ui/core/format/DateFormat',
     './../utils/formatter',
     './../utils/ErrorHandler'
   ],
-  function(JSONModel, PluginViewController, Log, Fragment, Formatter, ErrorHandler) {
+  function(JSONModel, PluginViewController, Log, Fragment, DateFormat, Formatter, ErrorHandler) {
     'use strict';
 
     var oLogger = Log.getLogger('confirmationPlugin', Log.Level.INFO);
@@ -71,17 +72,17 @@ sap.ui.define(
         onBeforeRenderingPlugin: function() {
           this.subscribe('phaseSelectionEvent', this.getQuantityConfirmationData, this);
           this.publish('requestForPhaseData', this);
-          // this.podType = this.getPodSelectionModel().getPodType();
-          // //Work Center POD event for Prodcuction Order
-          // if (this.getPodSelectionModel().getPodType() === 'WORK_CENTER') {
-          //     this.subscribe('OperationListSelectEvent', this.onOperationSelected, this);
-          //     // this.publish("phaseSelectionEventWIList", this);
-          // }
-          // //Order POD event for Process Order
-          // if (this.getPodSelectionModel().getPodType() === 'ORDER') {
-          //     this.subscribe('phaseSelectionEvent', this.onPhaseSelected, this);
-          //     this.publish('requestForPhaseData', this);
-          // }
+          this.podType = this.getPodSelectionModel().getPodType();
+          //Work Center POD event for Prodcuction Order
+          if (this.getPodSelectionModel().getPodType() === 'WORK_CENTER') {
+            this.subscribe('OperationListSelectEvent', this.onOperationSelected, this);
+            this.publish('phaseSelectionEventWIList', this);
+          }
+          //Order POD event for Process Order
+          if (this.getPodSelectionModel().getPodType() === 'ORDER') {
+            this.subscribe('phaseSelectionEvent', this.onPhaseSelected, this);
+            this.publish('requestForPhaseData', this);
+          }
         },
 
         onExit: function() {},
@@ -99,6 +100,16 @@ sap.ui.define(
               }.bind(this)
             );
           }
+        },
+
+        onPhaseSelected: function(sChannelId, sEventId, oData) {
+          this.page = 0;
+          this.resource = oData.resource.resource;
+        },
+
+        onOperationSelected: function(sChannelId, sEventId, oData) {
+          this.page = 0;
+          this.resource = oData.resource.resource;
         },
 
         getQuantityConfirmationData: function(sChannelId, sEventId, oData) {
@@ -171,6 +182,7 @@ sap.ui.define(
               //     that.byId('quantityConfirmationTable').setBusy(false);
 
               if (oTable) {
+                oTable.setModel(quantityConfirmationOverviewModel);
                 oTable.setBusy(false);
               }
             },
@@ -975,6 +987,96 @@ sap.ui.define(
               this._enableConfirmButton();
             }
           }
+        },
+
+        onConfirm: function() {
+          if (ErrorHandler.hasErrors()) {
+            return;
+          }
+          if (this.byId('scrapQuantity').getValueState() == 'Error') {
+            this.postData.scrapQuantity.value = '';
+            return;
+          }
+          if (!this.byId('yieldQuantity').getValue()) {
+            this.postData.yieldQuantity.value = '';
+          }
+          if (!this.byId('scrapQuantity').getValue()) {
+            this.postData.scrapQuantity.value = '';
+          }
+          var that = this;
+          this.postData.scrapQuantity.unitOfMeasure.uom = this.byId('uomScrap').getSelectedKey();
+          this.postData.yieldQuantity.unitOfMeasure.uom = this.byId('uomYield').getSelectedKey();
+          this.postData.scrapQuantity.unitOfMeasure.internalUom = this.unitList.filter(function(v) {
+            return v.value === that.byId('uomScrap').getSelectedKey();
+          })[0].internalUom;
+          this.postData.yieldQuantity.unitOfMeasure.internalUom = this.unitList.filter(function(v) {
+            return v.value === that.byId('uomYield').getSelectedKey();
+          })[0].internalUom;
+          if (!this.postData.yieldQuantity.value && !this.postData.scrapQuantity.value) {
+            MessageBox.error(this.getI18nText('quantityRequired'));
+            return false;
+          }
+          // Append Time
+          var postedDateTime =
+            this.getView().getModel('postModel').getProperty('/dateTime') + ' ' + '00' + ':' + '00' + ':' + '00';
+          // convert time to UTC
+          postedDateTime = new Date(moment.tz(postedDateTime, this.plantTimeZoneId).format());
+          var oDateFormatFrom = DateFormat.getDateInstance({ pattern: 'yyyy-MM-dd HH:mm:ss', UTC: true });
+          this.getView().getModel('postModel').setProperty('/dateTime', oDateFormatFrom.format(postedDateTime));
+          var productionUrl = this.getProductionDataSourceUri();
+          var sUrl = productionUrl + 'quantityConfirmation/confirm';
+
+          if (this.postData.yieldQuantity.value == '') {
+            this.postData.yieldQuantity.value = '0';
+          }
+          if (this.postData.scrapQuantity.value == '') {
+            this.postData.scrapQuantity.value = '0';
+          }
+          if (this.customFieldJson && this.customFieldJson.length > 0) {
+            this.postData.customFieldData = JSON.stringify(this.customFieldJson);
+          }
+          var quantityConfirmationModel = this.byId('quantityConfirmationTable').getModel();
+          var totalYield = quantityConfirmationModel.getData()[0].totalYieldQuantity.value;
+          this.postData.finalConfirmation = this.byId('finalConfirmation').getSelected();
+          this.postGrData(sUrl, this.postData);
+          this.onCloseReportQuantityDialog();
+        },
+
+        /***
+       * Post GR data
+       */
+        postGrData: function(sUrl, oRequestData) {
+          var that = this;
+          that.byId('quantityConfirmationTable').setBusy(true);
+          this.ajaxPostRequest(
+            sUrl,
+            oRequestData,
+            function(oResponseData) {
+              MessageToast.show(that.getI18nText('POSTING_SUCCESSFUL'));
+              that.getQuantityConfirmationSummary(that.selectedOrderData);
+              that.publish('refreshPhaseList', { stepId: that.selectedOrderData.stepId });
+              that.publish('phaseStartEvent', that);
+              if (that.selectedOrderData.erpAutoGRStatus) {
+                that.publish('refreshOrderQtyForAutoGR', that);
+              }
+              if (oRequestData.finalConfirmation == true) {
+                that.publish('phaseCompleteEvent', that);
+              }
+              that.byId('quantityConfirmationTable').setBusy(false);
+            },
+            function(oError, oHttpErrorMessage) {
+              var err = oError ? oError : oHttpErrorMessage;
+              that.showErrorMessage(err, true, true);
+              that.byId('quantityConfirmationTable').setBusy(false);
+            }
+          );
+        },
+
+        onCloseReportQuantityDialog: function() {
+          this.getView().byId('reportQuantityDialog').close();
+
+          //Reset the fields
+          this._resetFields();
         },
 
         _validatePositiveNumber: function(sInputValue) {
