@@ -61,6 +61,12 @@ sap.ui.define(
 
           var oQuantityPostModel = new JSONModel(this.postData);
           this.getView().setModel(oQuantityPostModel, 'postModel');
+          this.getView().setModel(new JSONModel([]), 'viewQuantityReportModel');
+          this.getView().setModel(
+            new JSONModel({ value: this.getI18nText('reportQuantities', [0]) }),
+            'reportQuantitiesTitle'
+          );
+          this.getView().setModel(new JSONModel({ customFieldVisible: false }), 'data');
           this.getView().setModel(new JSONModel({ value: [] }), 'quantitiesModel');
 
           this.prepareBusyDialog();
@@ -139,7 +145,7 @@ sap.ui.define(
             oParameters.phase = oData.operation.operation;
           }
           this.oParameters = oParameters;
-          // this.onOpenViewQuantityReportDialog(true);
+          this.onOpenViewQuantityReportDialog(true);
           var sUrl = productionUrl + 'quantityConfirmation/summary';
           this.postFetchQuantityConfirmationData(sUrl, oParameters);
         },
@@ -334,6 +340,109 @@ sap.ui.define(
             }
           }
           sap.ui.getCore().getMessageManager().removeAllMessages();
+        },
+
+        onOpenViewQuantityReportDialog: function(init) {
+          var oParameters = {};
+          oParameters.shopOrder = this.oParameters.shopOrder;
+          oParameters.batchId = this.oParameters.batchId;
+          oParameters.phase = this.oParameters.phase;
+          oParameters.size = 20;
+          oParameters.page = init ? 0 : this.page;
+          if (this.oPluginConfiguration && this.oPluginConfiguration.customField1) {
+            this.getView().getModel('data').setProperty('/customFieldVisible', true);
+            this.getView().setModel(
+              new JSONModel({ labelValue: this.oPluginConfiguration.customField1 }),
+              'customFieldLabelModel'
+            );
+          } else {
+            this.getView().setModel(
+              new JSONModel({ labelValue: this.getI18nText('customField') }),
+              'customFieldLabelModel'
+            );
+            this.getView().getModel('data').setProperty('/customFieldVisible', false);
+          }
+
+          var productionUrl = this.getProductionDataSourceUri();
+          var sUrl = productionUrl + 'quantityConfirmation/v2/details';
+          this.postFetchReportedQuantityConfirmationData(sUrl, oParameters, init);
+        },
+
+        postFetchReportedQuantityConfirmationData: function(sUrl, oParameters, init) {
+          var that = this;
+          var oView = this.getView();
+          that.byId('postingsTable').setBusyIndicatorDelay(0);
+          that.byId('postingsTable').setBusy(true);
+          this.ajaxGetRequest(
+            sUrl,
+            oParameters,
+            function(oResponseData) {
+              let oList = oResponseData.details.content;
+              for (var i = 0; i < oList.length; i++) {
+                // date time is in UTC
+                oList[i].dateTime = moment.tz(oList[i].dateTime, 'UTC');
+                var reasonCodes = oList[i].reasonCodes;
+                const aJson = JSON.parse(oList[i].customFieldData);
+                oList[i].customField = aJson && aJson[0].value;
+                oList[i].selectReasonCode =
+                  reasonCodes && reasonCodes.length > 0 ? reasonCodes[reasonCodes.length - 1] : '';
+              }
+              let iTotalCount = oResponseData.details.totalElements;
+              that
+                .getView()
+                .setModel(
+                  new JSONModel({ value: that.getI18nText('reportQuantities', [iTotalCount]) }),
+                  'reportQuantitiesTitle'
+                );
+              that.reportedQuantityConfirmationList = oList;
+              const tableModel = that.getView().getModel('viewQuantityReportModel');
+              let iCurrItemCount = tableModel.getData().length;
+              if (iCurrItemCount === 0 || init) {
+                tableModel.setData(that.reportedQuantityConfirmationList);
+              } else {
+                tableModel.setData(tableModel.getData().concat(that.reportedQuantityConfirmationList));
+              }
+              // var viewQuantityReportModel = new JSONModel(that.reportedQuantityConfirmationList);
+              // that.getView().setModel(viewQuantityReportModel, "viewQuantityReportModel");
+              that._oTable = that.byId('postingsTable');
+              let iCurrCount = tableModel.getData().length;
+              if (iCurrCount === +iTotalCount) {
+                that._oTable.getBindingInfo('items').binding.isLengthFinal = function() {
+                  return true;
+                };
+                that._oTable.setGrowingTriggerText('');
+              } else {
+                that._oTable.getBindingInfo('items').binding.isLengthFinal = function() {
+                  return false;
+                };
+                let sGrowingTriggerText = that.getI18nText('eventTable.growingTriggerText', [iCurrCount, iTotalCount]);
+                that._oTable.setGrowingTriggerText(sGrowingTriggerText);
+              }
+              that.byId('postingsTable').setBusy(false);
+              that.getView().setBusy(false);
+            },
+            function(oError, oHttpErrorMessage) {
+              var err = oError ? oError : oHttpErrorMessage;
+              that.showErrorMessage(err, true, true);
+              that.quantityConfirmationList = {};
+              that.getView().setBusy(false);
+              that.byId('postingsTable').setBusy(false);
+            }
+          );
+        },
+
+        onCloseQuantityReportDialog: function() {
+          var oTable = this.getView().byId('ViewQuantityReportTable');
+          var oDetialsColumnItem = this.getView().byId('QuantityDetailsCLItem');
+          var oTableLength = oTable.getColumns().length;
+          var oDetialsColumnItemLength = oDetialsColumnItem.getCells().length;
+          for (var i = oTableLength; i > 8; i--) {
+            oTable.removeColumn(oTable.getColumns()[i - 1]);
+          }
+          for (var j = oDetialsColumnItemLength; j > 8; j--) {
+            oDetialsColumnItem.removeCell(oDetialsColumnItem.getCells()[j - 1]);
+          }
+          this.getView().byId('ViewQuantityReportDialog').close();
         },
 
         handleReasonCode: function() {
