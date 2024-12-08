@@ -138,7 +138,25 @@ sap.ui.define(
           }
         },
 
-        onExit: function() {},
+        onExit: function() {
+          if (this.selectReasonCodeDialog !== undefined) {
+            this.selectReasonCodeDialog.destroy();
+          }
+          if (this._oTableSettings) {
+            this._oTableSettings.destroy();
+          }
+          PluginViewController.prototype.onExit.apply(this, arguments);
+          this.unsubscribe('phaseSelectionEvent', this.getQuantityConfirmationData, this);
+
+          //Work Center POD event for Prodcuction Order
+          if (this.getPodSelectionModel().getPodType() === 'WORK_CENTER') {
+            this.unsubscribe('OperationListSelectEvent', this.onOperationSelected, this);
+          }
+          //Order POD event for Process Order
+          if (this.getPodSelectionModel().getPodType() === 'ORDER') {
+            this.unsubscribe('phaseSelectionEvent', this.onPhaseSelected, this);
+          }
+        },
 
         onBeforeRendering: function() {},
 
