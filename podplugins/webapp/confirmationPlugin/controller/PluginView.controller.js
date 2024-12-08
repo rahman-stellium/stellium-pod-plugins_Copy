@@ -106,7 +106,7 @@ sap.ui.define(
           TablePersonalizeService.setPersData({});
 
           var oQuantityPostModel = new JSONModel(this.qtyPostData);
-          this.getView().setModel(oQuantityPostModel, 'postModel');
+          this.getView().setModel(oQuantityPostModel, 'qtyPostModel');
           this.getView().setModel(new JSONModel([]), 'viewQuantityReportModel');
           this.getView().setModel(
             new JSONModel({ value: this.getI18nText('reportQuantities', [0]) }),
@@ -383,7 +383,7 @@ sap.ui.define(
 
         onOpenReportQuantityDialog: function(oEvent) {
           var oView = this.getView(),
-            oPostModel = oView.getModel('postModel'),
+            oPostModel = oView.getModel('qtyPostModel'),
             oData = oEvent.getSource().getBindingContext('quantitiesModel').getObject();
 
           this.callServiceForTimeElementDesc();
@@ -675,11 +675,11 @@ sap.ui.define(
           var clearButtonPressed = oEvent.getParameters('clearButtonPressed');
           if (clearButtonPressed) {
             var oView = this.getView();
-            oView.getModel('postModel').setProperty('/reasonCodeKey', '');
-            oView.getModel('postModel').setProperty('/description', '');
-            oView.getModel('postModel').setProperty('/reasonCode', '');
+            oView.getModel('qtyPostModel').setProperty('/reasonCodeKey', '');
+            oView.getModel('qtyPostModel').setProperty('/description', '');
+            oView.getModel('qtyPostModel').setProperty('/reasonCode', '');
             oEvent.getSource().setValue('');
-            oView.getModel('postModel').refresh();
+            oView.getModel('qtyPostModel').refresh();
           }
         },
         prepareReasonCodeTable: function() {
@@ -1107,9 +1107,9 @@ sap.ui.define(
 
         prepareAssignReasonCodeRequest: function(reasonCodeToBeAssigned, machineCodeSave) {
           var reasonCodeKey = reasonCodeToBeAssigned[0].reasonCodeHandle.split(',');
-          this.getView().getModel('postModel').setProperty('/reasonCodeKey', reasonCodeKey[1]);
-          this.getView().getModel('postModel').setProperty('/description', reasonCodeToBeAssigned[0].description);
-          this.getView().getModel('postModel').setProperty('/reasonCode', reasonCodeToBeAssigned[0].ID);
+          this.getView().getModel('qtyPostModel').setProperty('/reasonCodeKey', reasonCodeKey[1]);
+          this.getView().getModel('qtyPostModel').setProperty('/description', reasonCodeToBeAssigned[0].description);
+          this.getView().getModel('qtyPostModel').setProperty('/reasonCode', reasonCodeToBeAssigned[0].ID);
           var request = { resourceRCAssignments: [] };
           var dummyObject;
           var that = this;
@@ -1177,7 +1177,7 @@ sap.ui.define(
          */
         onQuantityLiveChange: function(oEvent) {
           var oView = this.getView(),
-            oPostModel = oView.getModel('postModel'),
+            oPostModel = oView.getModel('qtyPostModel'),
             value = oEvent.getSource().getValue(),
             quantity;
 
@@ -1218,7 +1218,7 @@ sap.ui.define(
 
         onYieldQuantityLiveChange: function(oEvent) {
           var oView = this.getView(),
-            oPostModel = oView.getModel('postModel'),
+            oPostModel = oView.getModel('qtyPostModel'),
             value = oEvent.getSource().getValue();
 
           if (Number.isNaN(value) || (value && !this._validatePositiveNumber(value)) || parseFloat(value) === 0) {
@@ -1261,7 +1261,7 @@ sap.ui.define(
 
         onScrapQuantityLiveChange: function(oEvent) {
           var oView = this.getView(),
-            oPostModel = oView.getModel('postModel'),
+            oPostModel = oView.getModel('qtyPostModel'),
             value = oEvent.getSource().getValue();
 
           if (Number.isNaN(value) || (value && !this._validatePositiveNumber(value)) || parseFloat(value) === 0) {
@@ -1320,11 +1320,11 @@ sap.ui.define(
           }
           // Append Time
           var postedDateTime =
-            this.getView().getModel('postModel').getProperty('/dateTime') + ' ' + '00' + ':' + '00' + ':' + '00';
+            this.getView().getModel('qtyPostModel').getProperty('/dateTime') + ' ' + '00' + ':' + '00' + ':' + '00';
           // convert time to UTC
           postedDateTime = new Date(moment.tz(postedDateTime, this.plantTimeZoneId).format());
           var oDateFormatFrom = DateFormat.getDateInstance({ pattern: 'yyyy-MM-dd HH:mm:ss', UTC: true });
-          this.getView().getModel('postModel').setProperty('/dateTime', oDateFormatFrom.format(postedDateTime));
+          this.getView().getModel('qtyPostModel').setProperty('/dateTime', oDateFormatFrom.format(postedDateTime));
           var productionUrl = this.getProductionDataSourceUri();
           var sUrl = productionUrl + 'quantityConfirmation/confirm';
 
@@ -1671,9 +1671,9 @@ sap.ui.define(
           }
 
           if (
-            (oView.getModel('postModel').getProperty('/yieldQuantity/value') ||
-              oView.getModel('postModel').getProperty('/scrapQuantity/value')) &&
-            oView.getModel('postModel').getProperty('/userId') &&
+            (oView.getModel('qtyPostModel').getProperty('/yieldQuantity/value') ||
+              oView.getModel('qtyPostModel').getProperty('/scrapQuantity/value')) &&
+            oView.getModel('qtyPostModel').getProperty('/userId') &&
             !isErrorStateExist
           ) {
             this.getView().byId('quantityConfirmBtn').setEnabled(true);
