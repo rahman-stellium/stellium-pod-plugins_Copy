@@ -1166,16 +1166,29 @@ sap.ui.define(
           if (ErrorHandler.hasErrors()) {
             return;
           }
-          if (this.byId('scrapQuantity').getValueState() == 'Error') {
+
+          var oScrapQtyInput = this.byId('scrapQuantity'),
+            oReasonCodeInput = this.byId('reasonCode');
+
+          if (oScrapQtyInput.getValueState() == 'Error') {
             this.postData.scrapQuantity.value = '';
             return;
           }
+
+          if (!oScrapQtyInput.getValue()) {
+            this.postData.scrapQuantity.value = '';
+          }
+          
+          //Check if reason code is provided in case of scrap quantity
+          if(oScrapQtyInput.getValue() && !oReasonCodeInput.getValue()){
+            ErrorHandler.setErrorState(oReasonCodeInput, this.getI18nText('REASON_CODE_NOT_ASSIGNED'));
+            return;
+          }
+
           if (!this.byId('yieldQuantity').getValue()) {
             this.postData.yieldQuantity.value = '';
           }
-          if (!this.byId('scrapQuantity').getValue()) {
-            this.postData.scrapQuantity.value = '';
-          }
+
           var that = this;
           this.postData.scrapQuantity.unitOfMeasure.uom = this.byId('uomScrap').getSelectedKey();
           this.postData.yieldQuantity.unitOfMeasure.uom = this.byId('uomYield').getSelectedKey();
