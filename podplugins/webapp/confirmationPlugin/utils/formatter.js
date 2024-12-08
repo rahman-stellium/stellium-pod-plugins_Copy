@@ -15,6 +15,17 @@ sap.ui.define(
         // This method intentionally left empty
       },
 
+      enablePostingsButton: function(value) {
+        if (value === 0 || value === null) {
+          return false;
+        }
+        return true;
+      },
+      
+      formatReportButton: function(userAuthorizedForWorkCenter, isActivityExist, isDone) {
+        return userAuthorizedForWorkCenter && isActivityExist && !isDone;
+      },
+
       showValueWithUom: function(sValue, sUOM) {
         if (!sValue) {
           return '0';
@@ -42,7 +53,7 @@ sap.ui.define(
           return DateInstance.format(new Date(oDate));
         }
       },
-      
+
       scrapQuantityEnabled: function(scrapQuantity) {
         return scrapQuantity > 0;
       },

@@ -3,6 +3,7 @@ sap.ui.define(
     'sap/ui/model/json/JSONModel',
     'sap/dm/dme/podfoundation/controller/PluginViewController',
     'sap/dm/dme/formatter/DateTimeUtils',
+    "sap/dm/dme/util/PlantSettings",
     'sap/base/Log',
     'sap/m/MessageToast',
     'sap/ui/core/Fragment',
@@ -16,6 +17,7 @@ sap.ui.define(
     JSONModel,
     PluginViewController,
     DateTimeUtils,
+    PlantSettings,
     Log,
     MessageToast,
     Fragment,
@@ -48,6 +50,22 @@ sap.ui.define(
           if (PluginViewController.prototype.onInit) {
             PluginViewController.prototype.onInit.apply(this, arguments);
           }
+
+          this.actPostData = {
+            shopOrder: '',
+            batchId: '',
+            operationActivity: '',
+            stepId: '',
+            workCenter: '',
+            postedBy: '',
+            postingDate: '',
+            finalConfirmation: false
+          };
+
+          var oActivityPostModel = new JSONModel(this.actPostData);
+          this.getView().setModel(oActivityPostModel, 'actPostModel');
+          this.uomMap = {};
+          this.formContent = [];
 
           this.qtyPostData = {
             shopOrder: '',
@@ -122,6 +140,9 @@ sap.ui.define(
          * @see PluginViewController.onBeforeRenderingPlugin()
          */
         onBeforeRenderingPlugin: function() {
+          this.subscribe('phaseSelectionEvent', this.getActivityConfirmationPluginData, this);
+          this.subscribe('refreshPhaseList', this.handleYieldOrScrapReported, this);
+
           this.subscribe('phaseSelectionEvent', this.getQuantityConfirmationData, this);
           this.subscribe('plantChan');
           this.publish('requestForPhaseData', this);
@@ -146,7 +167,9 @@ sap.ui.define(
             this._oTableSettings.destroy();
           }
           PluginViewController.prototype.onExit.apply(this, arguments);
+          this.unsubscribe('phaseSelectionEvent', this.getActivityConfirmationPluginData, this);
           this.unsubscribe('phaseSelectionEvent', this.getQuantityConfirmationData, this);
+          this.unsubscribe('refreshPhaseList', this.handleYieldOrScrapReported, this);
 
           //Work Center POD event for Prodcuction Order
           if (this.getPodSelectionModel().getPodType() === 'WORK_CENTER') {
@@ -158,7 +181,14 @@ sap.ui.define(
           }
         },
 
-        onBeforeRendering: function() {},
+        onBeforeRendering: function() {
+          this.oPluginConfiguration = this.getConfiguration();
+          var oPodSelectionModel = this.getPodSelectionModel();
+          if (oPodSelectionModel.podType === 'OPERATION') {
+            var oData = { selections: oPodSelectionModel.selectedWorklistOperations };
+            this.getActivityConfirmationPluginData('', '', oData);
+          }
+        },
 
         onAfterRendering: function() {},
 
@@ -197,6 +227,161 @@ sap.ui.define(
           } else {
             this.addMessage(MessageType.Success, this.getI18nText('BACKFLUSH_POSTED_SUCCESSFULLY'));
           }
+        },
+
+        handleYieldOrScrapReported: function(sChannelId, sEventId, oData) {
+          this.yieldOrScrapReported = oData.stepId === this.selectedOrderData.stepId ? true : false;
+        },
+
+        getActivityConfirmationPluginData: function(sChannelId, sEventId, oData) {
+          this.selectedOrderData = oData;
+          //resetting the flag to false when the phase change happens.
+          this.yieldOrScrapReported = false;
+          this.getActivityConfirmationPluginSummary(this.selectedOrderData);
+        },
+
+        getActivityConfirmationPluginSummary: function(oData) {
+          var activityConfirmationUrl = this.getActivityConfirmationRestDataSourceUri();
+          var sUrl = activityConfirmationUrl + 'activityconfirmation/postings/aggregates/phase';
+          var oParameters = {};
+          var oPodSelectionModel = this.getPodSelectionModel();
+          if (oPodSelectionModel.podType === 'WORK_CENTER' || oPodSelectionModel.podType === 'OPERATION') {
+            this.selectedOrderData.userAuthorizedForWorkCenter = true; //user authorized always for these 2 pod types as worklist loads for authorized WCs only
+            let oActivityList = this.byId('activityList');
+            let oTitleTextControl = this.byId('titleText');
+            if (oData.selections.length === 0) {
+              // No need to show messages when no operation is selected as it is self explanatory. Same concept is
+              // maintained in other plugins like component lists, data collection lists etc.
+              this.setEmptyResponseToActivityTable(oActivityList, oTitleTextControl);
+            } else if (oData.selections.length > 1) {
+              this.setEmptyResponseToActivityTable(oActivityList, oTitleTextControl);
+              this.showErrorMessage(this.getI18nText('operationSelectionRequired'), true, true);
+            } else {
+              var oOp = oData.selections[0];
+              oParameters.shopOrder = oPodSelectionModel.selections[0].shopOrder.shopOrder;
+              oParameters.batchId = oOp.sfc;
+              oParameters.operationActivity = oOp.operation;
+              oParameters.workCenter =
+                oPodSelectionModel.podType === 'WORK_CENTER' ? oPodSelectionModel.workCenter : oOp.workCenter;
+              oParameters.stepId =
+                oPodSelectionModel.podType === 'WORK_CENTER' && oOp.stepId !== undefined ? oOp.stepId : oOp.stepID;
+              this.postFetchActivityConfirmationPluginData(sUrl, oParameters, oData);
+            }
+          } else {
+            oParameters.shopOrder = oData.selectedShopOrder;
+            oParameters.batchId = oData.selectedSfc;
+            oParameters.operationActivity =
+              oData.orderSelectionType === 'PROCESS' ? oData.phaseId : oData.operation.operation;
+            oParameters.workCenter = oData.workCenter.workcenter;
+            oParameters.stepId = oData.stepId;
+            this.postFetchActivityConfirmationPluginData(sUrl, oParameters, oData);
+          }
+        },
+
+        postFetchActivityConfirmationPluginData: function(sUrl, oParameters, oData) {
+          var oPodSelectionModel = this.getPodSelectionModel();
+          var oActivityList = this.byId('activityList');
+          var oTitleTextControl = this.byId('titleText');
+          if (!oActivityList || !oTitleTextControl || !oPodSelectionModel) {
+            // one or more of these can be null in OPA tests
+            return;
+          }
+          var that = this;
+          oActivityList.setBusy(true);
+          var userAuthFlag = this.selectedOrderData.userAuthorizedForWorkCenter;
+          var phaseStartDate = oData.actualStartDate;
+          var phaseEndDate = oData.actualEndDate;
+          this.ajaxGetRequest(
+            sUrl,
+            oParameters,
+            function(oResponseData) {
+              // adding user work center authorization flag to response
+              oResponseData.userAuthorizedForWorkCenter =
+                userAuthFlag !== null && userAuthFlag !== undefined ? userAuthFlag : false;
+              oResponseData.phaseStartDate = phaseStartDate;
+              oResponseData.phaseEndDate = phaseEndDate;
+              oResponseData.podType = oPodSelectionModel.podType;
+              oResponseData.isDone =
+                oResponseData.podType === 'ORDER'
+                  ? that.selectedOrderData.done
+                  : that.selectedOrderData.selections[0].statusComplete;
+
+              that.activityConfirmationPluginList = oResponseData;
+              if (that.activityConfirmationPluginList.activitySummary.length !== 0) {
+                oTitleTextControl.setText(
+                  that.getI18nText('Activities') +
+                    ' (' +
+                    that.activityConfirmationPluginList.activitySummary.length +
+                    ')'
+                );
+                that.activityConfirmationPluginList.isActivityExist = true;
+                that.activityConfirmationPluginList.activitySummary.sort(function(x, y) {
+                  var a = x.sequence;
+                  var b = y.sequence;
+                  var c = x.activityId.toUpperCase();
+                  var d = y.activityId.toUpperCase();
+                  return a === b ? (c === d ? 0 : c > d ? 1 : -1) : a > b ? 1 : -1;
+                });
+              } else {
+                oTitleTextControl.setText(that.getI18nText('Activities'));
+                that.activityConfirmationPluginList.isActivityExist = false;
+              }
+              var activityConfirmationPluginOverviewModel = new JSONModel();
+              activityConfirmationPluginOverviewModel.setData(that.activityConfirmationPluginList);
+              oActivityList.setModel(activityConfirmationPluginOverviewModel);
+              that.plantTimeZoneId = PlantSettings.getTimeZone();
+              var globalLoggedInUser = that.getGlobalProperty('loggedInUserDetails');
+              if (!globalLoggedInUser && !that.loggedInUser) {
+                that.getLoggedInUserAndPlant();
+              } else {
+                that.loggedInUser = that.loggedInUser ? that.loggedInUser : globalLoggedInUser.userId;
+                oActivityList.setBusy(false);
+              }
+            },
+            function(oError, oHttpErrorMessage) {
+              var err = oError ? oError : oHttpErrorMessage;
+              that.showErrorMessage(err, true, true);
+              that.setEmptyResponseToActivityTable(oActivityList, oTitleTextControl);
+              oActivityList.setBusy(false);
+            }
+          );
+        },
+
+        setEmptyResponseToActivityTable: function(oActivityList, oTitleTextControl) {
+          this.activityConfirmationPluginList = {};
+          oTitleTextControl.setText(this.getI18nText('Activities'));
+          var activityConfirmationPluginOverviewModel = new JSONModel();
+          activityConfirmationPluginOverviewModel.setData(this.activityConfirmationPluginList);
+          oActivityList.setModel(activityConfirmationPluginOverviewModel);
+        },
+
+        getLoggedInUserAndPlant: function() {
+          var that = this;
+          var oParameters = {};
+          var plantUrl = this.getPlantRestDataSourceUri();
+          var sUrl = plantUrl + 'users/current';
+          this.byId('activityList').setBusy(true);
+          this.ajaxGetRequest(
+            sUrl,
+            oParameters,
+            function(oResponseData) {
+              that.loggedInUser = oResponseData.userId ? oResponseData.userId : '';
+              that.byId('activityList').setBusy(false);
+            },
+            function(oError, oHttpErrorMessage) {
+              var err = oError ? oError : oHttpErrorMessage;
+              that.showErrorMessage(err, true, true);
+              that.byId('activityList').setBusy(false);
+            }
+          );
+        },
+
+        getCurrentDateInPlantTimeZone: function() {
+          return moment().tz(this.plantTimeZoneId).format('YYYY-MM-DD');
+        },
+
+        getCurrentTimeInPlantTimeZone: function() {
+          return moment().tz(this.plantTimeZoneId).format('HH:mm:ss');
         },
 
         formatConfirmationStatus: function(value) {
