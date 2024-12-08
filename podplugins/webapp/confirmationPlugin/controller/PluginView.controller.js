@@ -2,14 +2,17 @@ sap.ui.define(
   [
     'sap/ui/model/json/JSONModel',
     'sap/dm/dme/podfoundation/controller/PluginViewController',
+    "sap/dm/dme/formatter/DateTimeUtils",
     'sap/base/Log',
+    'sap/m/MessageToast',
     'sap/ui/core/Fragment',
     'sap/ui/core/format/DateFormat',
     'sap/ui/model/Sorter',
     './../utils/formatter',
-    './../utils/ErrorHandler'
+    './../utils/ErrorHandler',
+    "./../utils/ReasonCodeDialog",
   ],
-  function(JSONModel, PluginViewController, Log, Fragment, DateFormat, Sorter, Formatter, ErrorHandler) {
+  function(JSONModel, PluginViewController, DateTimeUtils, Log, MessageToast, Fragment, DateFormat, Sorter, Formatter, ErrorHandler, ReasonCodeDialogUtil) {
     'use strict';
 
     var oLogger = Log.getLogger('confirmationPlugin', Log.Level.INFO);
@@ -22,6 +25,8 @@ sap.ui.define(
         },
 
         oFormatter: Formatter,
+        DateTimeUtils: DateTimeUtils,
+        ReasonCodeDialogUtil: ReasonCodeDialogUtil,
 
         reasonCodeData: {
           timeElementReasonCodeTree: []
@@ -106,6 +111,7 @@ sap.ui.define(
          */
         onBeforeRenderingPlugin: function() {
           this.subscribe('phaseSelectionEvent', this.getQuantityConfirmationData, this);
+          this.subscribe('plantChan')
           this.publish('requestForPhaseData', this);
           this.podType = this.getPodSelectionModel().getPodType();
           //Work Center POD event for Prodcuction Order
@@ -1178,9 +1184,9 @@ sap.ui.define(
           if (!oScrapQtyInput.getValue()) {
             this.postData.scrapQuantity.value = '';
           }
-          
+
           //Check if reason code is provided in case of scrap quantity
-          if(oScrapQtyInput.getValue() && !oReasonCodeInput.getValue()){
+          if (oScrapQtyInput.getValue() && !oReasonCodeInput.getValue()) {
             ErrorHandler.setErrorState(oReasonCodeInput, this.getI18nText('REASON_CODE_NOT_ASSIGNED'));
             return;
           }
@@ -1264,6 +1270,250 @@ sap.ui.define(
           //Reset the fields
           this._resetFields();
         },
+
+        onReasonCodePress: function(oEvent) {
+          let source = oEvent.getSource();
+          let oContext = source.getBindingContext('viewQuantityReportModel').getObject();
+
+          let sReasonCodeRef = 'ResourceReasonCodeBO:' + this.plant + ',' + oContext.reasonCode;
+          this._selectedScrapActivityLogId = oContext.scrapActivityLogId;
+
+          let that = this;
+          // Open popover to display path for assigned reason code
+          return this.loadReasonCodePopover()
+            .then(oPopover => {
+              oPopover.openBy(source).setBusy(true);
+              that
+                .getReasonCodeDetail(sReasonCodeRef)
+                .then(oData => {
+                  oPopover.getModel().setData(oData);
+                  oPopover.setBusy(false);
+                })
+                .catch(oError => {
+                  MessageBox.error(oError.message);
+                  oPopover.setBusy(false).close();
+                });
+            })
+            .catch(oError => {
+              MessageBox.error(oError.message);
+            });
+        },
+
+        loadReasonCodePopover: function() {
+          if (!this.oReasonCodePopoverPromise) {
+            let sFragment = 'stellium.ext.podplugins.confirmationPlugin.view.fragments.ReasonCodePopover';
+            this.oReasonCodePopoverPromise = this.loadFragment('reasonCodePopover', sFragment, this).then(oPopover => {
+              this.getView().addDependent(oPopover);
+              oPopover.setModel(new sap.ui.model.json.JSONModel());
+              return oPopover;
+            });
+          }
+          return this.oReasonCodePopoverPromise;
+        },
+
+        loadFragment: function (sId, sFragment, oContext) {
+          return Fragment.load({
+              id: sId,
+              name: sFragment,
+              controller: oContext
+          });
+        },
+
+        handleReasonCodeUpdateFromPopover: function(event) {
+          let that = this;
+          if (!this.listOfTimeElementAndDesc) {
+            this.callServiceForTimeElementDesc();
+          }
+          if (!this.updateReasonCodeDialog) {
+            this.updateReasonCodeDialog = sap.ui.xmlfragment(
+              'updateReasonCodeDialog',
+              'stellium.ext.podplugins.confirmationPlugin.view.fragments.UpdateReasonCodeDialog',
+              this
+            );
+            this.getView().addDependent(this.updateReasonCodeDialog);
+          }
+          this.updateReasonCodeDialog.open();
+          setTimeout(function() {
+            that.prepareReasonCodeTableForUpdate();
+          }, 1000);
+        },
+
+        onSelectReasonCodeForUpdate: function() {
+          let oUpdateReasonCodeTable, oPath, selectedObject, oSaveButton, oIndices;
+          oUpdateReasonCodeTable = this.updateReasonCodeDialog.getContent()[0];
+          oSaveButton = this.updateReasonCodeDialog.mAggregations.beginButton;
+          oIndices = oUpdateReasonCodeTable.getSelectedIndices();
+          if (oIndices.length >= 1) {
+            for (let index of oIndices) {
+              oPath = oUpdateReasonCodeTable.getContextByIndex(index).sPath;
+              selectedObject = oUpdateReasonCodeTable.getModel('oReasonCodeModel').getProperty(oPath);
+              if (selectedObject.timeElementReasonCodeTree) {
+                oSaveButton.setEnabled(false);
+                return false;
+              }
+              oSaveButton.setEnabled(true);
+            }
+          } else if (oIndices.length === 0) {
+            oSaveButton.setEnabled(false);
+          }
+        },
+
+        onClickUpdateReasonCode: function(oEvent) {
+          let aSelectedReasonCodes, oMinLevelSelected, oIndex;
+          let reasonCodesToBeAssigned = [];
+          let that = this;
+          this.busyDialog.open();
+          aSelectedReasonCodes = this.getSelectedObjectsToUpdate();
+          if (aSelectedReasonCodes.length > 0) {
+            aSelectedReasonCodes.sort(function(a, b) {
+              return a.level - b.level;
+            });
+            oMinLevelSelected = aSelectedReasonCodes[0].level;
+            for (oIndex = aSelectedReasonCodes.length - 1; oIndex >= 0; oIndex--) {
+              if (aSelectedReasonCodes[oIndex].level === oMinLevelSelected) {
+                reasonCodesToBeAssigned.push(aSelectedReasonCodes[oIndex]);
+                aSelectedReasonCodes.splice(oIndex, 1);
+              }
+            }
+
+            // Remove Child Reason Codes If Parent Exists
+            reasonCodesToBeAssigned = this.updateReasonCodeObject(aSelectedReasonCodes, reasonCodesToBeAssigned);
+            let sUrl = that.getProductionDataSourceUri() + '/quantityConfirmation/reasonCode';
+            let oRequestPayload = {};
+            oRequestPayload.activityLogId = this._selectedScrapActivityLogId;
+            oRequestPayload.reasonCodeKey = reasonCodesToBeAssigned[0].reasonCodeHandle.split(',')[1];
+            oRequestPayload.reasonCode = reasonCodesToBeAssigned[0].ID;
+
+            let viewQtyReportModel = that.getView().getModel('viewQuantityReportModel');
+            let records = viewQtyReportModel.getData();
+
+            for (let record of records) {
+              if (record.scrapActivityLogId === that._selectedScrapActivityLogId) {
+                record.selectReasonCode = reasonCodesToBeAssigned[0].ID;
+                record.description = reasonCodesToBeAssigned[0].description;
+                record.reasonCode = oRequestPayload.reasonCodeKey;
+              }
+            }
+
+            this.ajaxPatchRequest(
+              sUrl,
+              oRequestPayload,
+              // success handler
+              function(oResponseData) {
+                //Updating model
+                that.getView().getModel('viewQuantityReportModel').setData(records);
+                MessageToast.show(that.getI18nText('reasonCodeAssigned'));
+                that.updateReasonCodeDialog.mAggregations.subHeader.mAggregations.contentMiddle[0].setValue('');
+                that.busyDialog.close();
+                that.updateReasonCodeDialog.close();
+              },
+              // error handler
+              function(oError, sHttpErrorMessage, iStatusCode) {
+                let err = oError ? oError : sHttpErrorMessage;
+                that.showErrorMessage(err, true, true);
+                that.busyDialog.close();
+                that.updateReasonCodeDialog.close();
+              }
+            );
+          } else {
+            that.busyDialog.close();
+          }
+        },
+
+        prepareReasonCodeTableForUpdate: function() {
+          let oReasonCodeModel;
+          let reasonCodeTable = this.updateReasonCodeDialog.getContent()[0];
+          this.getReasonCodesForTimeElement();
+          this.prepareDataForBinding(this.listOfTimeElementAndDesc);
+          if (!oReasonCodeModel) {
+            oReasonCodeModel = new sap.ui.model.json.JSONModel(this.reasonCodeData);
+            reasonCodeTable.setModel(oReasonCodeModel, 'oReasonCodeModel');
+            if (this.reasonTree.length > 0) {
+              let arr = [];
+              for (let reasonCode of this.reasonTree) {
+                this.path = [];
+                this.assignedCodeSelectionLoop(reasonCode.resourceReasonCodeNodeCollection);
+                let aData = this.path;
+                for (let j = 0; j < aData.length; j++) {
+                  this.child = [];
+                  let elem = aData[j];
+                  let code = this.appendReasonCode(elem);
+                  this.getReasonCodesForChild(elem.timeElement.ref, code);
+                  aData[j] = this.child[0];
+                }
+                aData.typeOfData = 'reasonCodeObject';
+                let reasonCodeNestedObject = this.transformData(aData);
+                arr = arr.concat(reasonCodeNestedObject);
+              }
+              oReasonCodeModel.setData({
+                timeElementReasonCodeTree: arr
+              });
+              reasonCodeTable.getModel('oReasonCodeModel').checkUpdate();
+            } else {
+              for (let timeElementReasonCode of this.reasonCodeData.timeElementReasonCodeTree) {
+                this.getReasonCodesForTimeElementForNotSourceForUpdate(timeElementReasonCode, reasonCodeTable);
+              }
+            }
+            this.allList = reasonCodeTable.getModel('oReasonCodeModel').getData();
+            reasonCodeTable.getModel('oReasonCodeModel').checkUpdate();
+            this.updateReasonCodeDialog.setBusy(false);
+          }
+        },
+
+        getDateInPlantTimeZone: function(date) {
+          var sDate = moment(new Date(date)).tz(this.plantTimeZoneId).format('YYYY-MM-DD');
+          var oDateFormatFrom = DateFormat.getDateInstance({ format: 'yMMMd', UTC: true });
+          return oDateFormatFrom.format(new Date(sDate));
+        },
+
+        getDateTimeInPlantTimeZone: function(dateTime) {
+          var sdate = DateTimeUtils.dmcDateToUTCFormat(dateTime, 'Etc/GMT');
+          return DateTimeUtils.dmcDateTimeFormatterFromUTC(sdate, this.plantTimeZoneId, null);
+        },
+
+        dmcDateToUTCFormat: function (date, timezone){
+          let result = "";
+          const timezoneInternal = timezone || _getPlantTimezone();
+          const sFormattedDate = moment(date).locale("en").format("yyyy-MM-DD HH:mm:ss");
+          const oDate = moment.tz(sFormattedDate, timezoneInternal);
+          result = oDate.utc().format("YYYY-MM-DDTHH:mm:ss.SSS[Z]");
+          return result;
+        },
+
+        getSelectedObjectsToUpdate: function() {
+          let oTable, oSelectedIndices, oPath, selectedObject;
+          let selectedObjects = [];
+          oTable = this.updateReasonCodeDialog.getContent()[0];
+          oSelectedIndices = oTable.getSelectedIndices();
+          for (let index of oSelectedIndices) {
+            oPath = oTable.getContextByIndex(index).sPath;
+            selectedObject = oTable.getModel('oReasonCodeModel').getProperty(oPath);
+            selectedObjects.push(selectedObject);
+          }
+          return selectedObjects;
+        },
+
+        getReasonCodeDetail: function (sReasonCodeRef) {
+          let that = this;
+          let oPromise = $.Deferred();
+          let fnErrorCallback = (oError, sErrorMessage) => oPromise.reject(new Error(oError?.error?.message || sErrorMessage));
+
+          this.ajaxGetRequest(that.getPlantRestDataSourceUri() + "resourceReasonCodes/" + encodeURIComponent(sReasonCodeRef), "",
+              oReasonCode => {
+                  // Reason code object only contains ids of parent reason codes
+                  // Get all parent reason codes so descriptions can be displayed
+                  let sQuery = "timeElement.ref=" + encodeURIComponent(oReasonCode.timeElement.ref) + "&reasonCode1=" + encodeURIComponent(oReasonCode.reasonCode1);
+                  that.ajaxGetRequest(that.getPlantRestDataSourceUri() + "resourceReasonCodes?" + sQuery, "",
+                      aReasonCodes => oPromise.resolve({
+                          reasonCode: oReasonCode,
+                          parentCodes: that.ReasonCodeDialogUtil.buildReasonCodeParents(aReasonCodes, oReasonCode)
+                      }),
+                      fnErrorCallback)
+              },
+              fnErrorCallback);
+
+          return oPromise;
+      },
 
         _validatePositiveNumber: function(sInputValue) {
           //Regex for Valid Numbers(10 digits before decimal and 3 digits after decimal)
