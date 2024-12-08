@@ -2,7 +2,7 @@ sap.ui.define(
   [
     'sap/ui/model/json/JSONModel',
     'sap/dm/dme/podfoundation/controller/PluginViewController',
-    "sap/dm/dme/formatter/DateTimeUtils",
+    'sap/dm/dme/formatter/DateTimeUtils',
     'sap/base/Log',
     'sap/m/MessageToast',
     'sap/ui/core/Fragment',
@@ -10,9 +10,21 @@ sap.ui.define(
     'sap/ui/model/Sorter',
     './../utils/formatter',
     './../utils/ErrorHandler',
-    "./../utils/ReasonCodeDialog",
+    './../utils/ReasonCodeDialog'
   ],
-  function(JSONModel, PluginViewController, DateTimeUtils, Log, MessageToast, Fragment, DateFormat, Sorter, Formatter, ErrorHandler, ReasonCodeDialogUtil) {
+  function(
+    JSONModel,
+    PluginViewController,
+    DateTimeUtils,
+    Log,
+    MessageToast,
+    Fragment,
+    DateFormat,
+    Sorter,
+    Formatter,
+    ErrorHandler,
+    ReasonCodeDialogUtil
+  ) {
     'use strict';
 
     var oLogger = Log.getLogger('confirmationPlugin', Log.Level.INFO);
@@ -111,7 +123,7 @@ sap.ui.define(
          */
         onBeforeRenderingPlugin: function() {
           this.subscribe('phaseSelectionEvent', this.getQuantityConfirmationData, this);
-          this.subscribe('plantChan')
+          this.subscribe('plantChan');
           this.publish('requestForPhaseData', this);
           this.podType = this.getPodSelectionModel().getPodType();
           //Work Center POD event for Prodcuction Order
@@ -131,6 +143,79 @@ sap.ui.define(
         onBeforeRendering: function() {},
 
         onAfterRendering: function() {},
+
+        isSubscribingToNotifications: function() {
+          return true;
+        },
+
+        getNotificationMessageHandler: function(sTopic) {
+          if (sTopic === Topic.BACKFLUSH_FAILURE_MSG) {
+            return this.handleBackflushFailureMessages;
+          }
+          return null;
+        },
+
+        handleBackflushFailureMessages: function(oMsg) {
+          if (this.selectedOrderData.erpAutoGRStatus) {
+            this.publish('refreshOrderQtyForAutoGR', this); //Refresh goods receipt quantity in the Order Card.
+          }
+          this.publish('QuantityConfirmationChangeEvent', { quantityConfirmation: true });
+          if (oMsg.failureMessages && oMsg.failureMessages.length > 0) {
+            // clear messages.
+            this.clearMessages();
+            // If there are new backflush faliures, we need to refresh the alerts.
+            HandleAlerts.getAlerts(this, this.selectedOrderData.workCenter.workcenter, null);
+            var backflushFailureMessages = '<ul>';
+            oMsg.failureMessages.forEach(function(errorMessage) {
+              if (errorMessage) {
+                backflushFailureMessages += '<li>' + errorMessage + '</li>';
+              }
+            });
+            backflushFailureMessages += '</ul>';
+            MessageBox.error(this.getI18nText('BACKFLUSH_FAILURE_MESSAGE'), {
+              title: 'Error',
+              details: backflushFailureMessages
+            });
+          } else {
+            this.addMessage(MessageType.Success, this.getI18nText('BACKFLUSH_POSTED_SUCCESSFULLY'));
+          }
+        },
+
+        formatConfirmationStatus: function(value) {
+          if (!value) {
+            return '';
+          } else if (value == 'SENT_TO_S4' || value == 'PENDING' || value == 'POSTED_IN_DM') {
+            return this.getI18nText('posted');
+          } else if (value == 'CANCELLED_IN_DM') {
+            return this.getI18nText('cancelled');
+          }
+        },
+
+        createMessage: function(message, messageType, callback) {
+          jQuery.sap.require('sap.m.MessageBox');
+
+          if (messageType === sap.ui.core.MessageType.Warning) {
+            sap.m.MessageBox.confirm(message, {
+              title: this.getI18nText('confirmDialogTitle'),
+              textDirection: sap.ui.core.TextDirection.Inherit,
+              onClose: function(oAction) {
+                if (callback && oAction === 'OK') {
+                  callback();
+                }
+              }
+            });
+          } else {
+            sap.m.MessageBox.error(message, {
+              title: this.getI18nText('errorDialogTitle'),
+              textDirection: sap.ui.core.TextDirection.Inherit,
+              onClose: function() {
+                if (callback) {
+                  callback();
+                }
+              }
+            });
+          }
+        },
 
         prepareBusyDialog: function() {
           if (!this.busyDialog) {
@@ -194,7 +279,7 @@ sap.ui.define(
           this.resource = oPodSelectionModel.workCenter;
 
           if (!oPodSelectionModel || !oPodSelectionModel.timeZoneId) {
-            // this.createMessage('missingInformation', MessageType.Error);
+            this.createMessage('missingInformation', MessageType.Error);
             return false;
           }
 
@@ -202,6 +287,13 @@ sap.ui.define(
 
           this.selectedOrderData = oData;
           this.getQuantityConfirmationSummary(this.selectedOrderData);
+        },
+
+        errorHandler: function(errorObject) {
+          this.busyDialog.close();
+          if (errorObject) {
+            this.createMessage(errorObject.error.message, sap.ui.core.MessageType.Error);
+          }
         },
 
         getQuantityConfirmationSummary: function(oData) {
@@ -1311,11 +1403,11 @@ sap.ui.define(
           return this.oReasonCodePopoverPromise;
         },
 
-        loadFragment: function (sId, sFragment, oContext) {
+        loadFragment: function(sId, sFragment, oContext) {
           return Fragment.load({
-              id: sId,
-              name: sFragment,
-              controller: oContext
+            id: sId,
+            name: sFragment,
+            controller: oContext
           });
         },
 
@@ -1471,12 +1563,12 @@ sap.ui.define(
           return DateTimeUtils.dmcDateTimeFormatterFromUTC(sdate, this.plantTimeZoneId, null);
         },
 
-        dmcDateToUTCFormat: function (date, timezone){
-          let result = "";
+        dmcDateToUTCFormat: function(date, timezone) {
+          let result = '';
           const timezoneInternal = timezone || _getPlantTimezone();
-          const sFormattedDate = moment(date).locale("en").format("yyyy-MM-DD HH:mm:ss");
+          const sFormattedDate = moment(date).locale('en').format('yyyy-MM-DD HH:mm:ss');
           const oDate = moment.tz(sFormattedDate, timezoneInternal);
-          result = oDate.utc().format("YYYY-MM-DDTHH:mm:ss.SSS[Z]");
+          result = oDate.utc().format('YYYY-MM-DDTHH:mm:ss.SSS[Z]');
           return result;
         },
 
@@ -1493,27 +1585,44 @@ sap.ui.define(
           return selectedObjects;
         },
 
-        getReasonCodeDetail: function (sReasonCodeRef) {
+        getReasonCodeDetail: function(sReasonCodeRef) {
           let that = this;
           let oPromise = $.Deferred();
-          let fnErrorCallback = (oError, sErrorMessage) => oPromise.reject(new Error(oError?.error?.message || sErrorMessage));
+          let fnErrorCallback = (oError, sErrorMessage) => {
+            if (oError && oError.error && oError.error.message) {
+              oPromise.reject(new Error(oError.error.message));
+            } else {
+              oPromise.reject(new Error(sErrorMessage));
+            }
+          };
 
-          this.ajaxGetRequest(that.getPlantRestDataSourceUri() + "resourceReasonCodes/" + encodeURIComponent(sReasonCodeRef), "",
-              oReasonCode => {
-                  // Reason code object only contains ids of parent reason codes
-                  // Get all parent reason codes so descriptions can be displayed
-                  let sQuery = "timeElement.ref=" + encodeURIComponent(oReasonCode.timeElement.ref) + "&reasonCode1=" + encodeURIComponent(oReasonCode.reasonCode1);
-                  that.ajaxGetRequest(that.getPlantRestDataSourceUri() + "resourceReasonCodes?" + sQuery, "",
-                      aReasonCodes => oPromise.resolve({
-                          reasonCode: oReasonCode,
-                          parentCodes: that.ReasonCodeDialogUtil.buildReasonCodeParents(aReasonCodes, oReasonCode)
-                      }),
-                      fnErrorCallback)
-              },
-              fnErrorCallback);
+          this.ajaxGetRequest(
+            that.getPlantRestDataSourceUri() + 'resourceReasonCodes/' + encodeURIComponent(sReasonCodeRef),
+            '',
+            oReasonCode => {
+              // Reason code object only contains ids of parent reason codes
+              // Get all parent reason codes so descriptions can be displayed
+              let sQuery =
+                'timeElement.ref=' +
+                encodeURIComponent(oReasonCode.timeElement.ref) +
+                '&reasonCode1=' +
+                encodeURIComponent(oReasonCode.reasonCode1);
+              that.ajaxGetRequest(
+                that.getPlantRestDataSourceUri() + 'resourceReasonCodes?' + sQuery,
+                '',
+                aReasonCodes =>
+                  oPromise.resolve({
+                    reasonCode: oReasonCode,
+                    parentCodes: that.ReasonCodeDialogUtil.buildReasonCodeParents(aReasonCodes, oReasonCode)
+                  }),
+                fnErrorCallback
+              );
+            },
+            fnErrorCallback
+          );
 
           return oPromise;
-      },
+        },
 
         _validatePositiveNumber: function(sInputValue) {
           //Regex for Valid Numbers(10 digits before decimal and 3 digits after decimal)
