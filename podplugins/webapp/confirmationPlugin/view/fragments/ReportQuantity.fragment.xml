@@ -30,7 +30,8 @@
                 <!-- <Input id="scrapQuantity" textAlign="Right"
                     value="{formatOptions : { parseAsString : true, strictGroupingValidation : true },parts:[{path:'postModel>/scrapQuantity/value'},{path:'postModel>/scrapQuantity/unitOfMeasure/uom'}], type:'.types.quantity'}"
                     liveChange="onQuantityLiveChange" /> -->
-                <Input id="scrapQuantity" textAlign="Right"
+                <Input id="scrapQuantity" 
+                    textAlign="Right"
                     value="{postModel>/scrapQuantity/value}"
                     liveChange="onScrapQuantityLiveChange" />
                 <Select id="uomScrap" items="{unitModel>/}" change="selectUom($event, 'scrapQuantity')"
@@ -41,7 +42,9 @@
                     <core:Item key="{unitModel>value}" text="{unitModel>value} - {unitModel>text}" />
                 </Select>
                 <Label text="{i18n>reasonCode}" labelFor="reasonCode" />
-                <Input id="reasonCode" showClearIcon="true" type="Text"
+                <Input id="reasonCode" 
+                    showClearIcon="true" 
+                    type="Text"
                     enabled="{parts:[{path:'postModel>/scrapQuantity/value'}], formatter:'.oFormatter.scrapQuantityEnabled'}"
                     liveChange="handleSearchForReasonCodeSearch" value="{postModel>/reasonCode}"
                     fieldGroupIds="validated" showValueHelp="true" valueHelpRequest="handleReasonCode" />

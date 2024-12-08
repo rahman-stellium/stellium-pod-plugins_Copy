@@ -5,10 +5,11 @@ sap.ui.define(
     'sap/base/Log',
     'sap/ui/core/Fragment',
     'sap/ui/core/format/DateFormat',
+    'sap/ui/model/Sorter',
     './../utils/formatter',
     './../utils/ErrorHandler'
   ],
-  function(JSONModel, PluginViewController, Log, Fragment, DateFormat, Formatter, ErrorHandler) {
+  function(JSONModel, PluginViewController, Log, Fragment, DateFormat, Sorter, Formatter, ErrorHandler) {
     'use strict';
 
     var oLogger = Log.getLogger('confirmationPlugin', Log.Level.INFO);
@@ -58,6 +59,34 @@ sap.ui.define(
             storageLocation: '',
             finalConfirmation: false
           };
+
+          this.page = 0;
+          const TablePersonalizeService = {
+            oData: {
+              _persoSchemaVersion: '1.0',
+              aColumns: []
+            },
+
+            getPersData: function() {
+              const oDeferred = new jQuery.Deferred();
+              if (!this._oBundle) {
+                this._oBundle = this.oData;
+              }
+              const oBundle = this._oBundle;
+              oDeferred.resolve(oBundle);
+              return oDeferred.promise();
+            },
+
+            setPersData: function(oBundle) {
+              const oDeferred = new jQuery.Deferred();
+              this._oBundle = oBundle;
+              oDeferred.resolve();
+              return oDeferred.promise();
+            }
+          };
+          this._mViewSettingsDialogs = {};
+          TablePersonalizeService.getPersData();
+          TablePersonalizeService.setPersData({});
 
           var oQuantityPostModel = new JSONModel(this.postData);
           this.getView().setModel(oQuantityPostModel, 'postModel');
@@ -111,6 +140,41 @@ sap.ui.define(
         onPhaseSelected: function(sChannelId, sEventId, oData) {
           this.page = 0;
           this.resource = oData.resource.resource;
+        },
+
+        handleSettingsButtonPressed: function() {
+          this._oTableSettings.openDialog();
+        },
+
+        handleSortButtonPressed: function() {
+          this.createViewSettingsDialog('stellium.ext.podplugins.confirmationPlugin.view.fragments.SortDialog').open();
+        },
+
+        onSortDialogConfirmButtonClicked: function(oEvent) {
+          let oTable = this.byId('postingsTable'),
+            mParams = oEvent.getParameters(),
+            oBinding = oTable.getBinding('items'),
+            sPath,
+            bDescending,
+            aSorters = [];
+
+          sPath = mParams.sortItem.getKey();
+          bDescending = mParams.sortDescending;
+          aSorters.push(new Sorter(sPath, bDescending));
+
+          // apply the selected sort and group settings
+          oBinding.sort(aSorters);
+        },
+
+        createViewSettingsDialog: function(sDialogFragmentName) {
+          let oDialog = this._mViewSettingsDialogs[sDialogFragmentName];
+
+          if (!oDialog) {
+            oDialog = sap.ui.xmlfragment(sDialogFragmentName, this);
+            this._mViewSettingsDialogs[sDialogFragmentName] = oDialog;
+          }
+          this.getView().addDependent(oDialog);
+          return oDialog;
         },
 
         onOperationSelected: function(sChannelId, sEventId, oData) {
