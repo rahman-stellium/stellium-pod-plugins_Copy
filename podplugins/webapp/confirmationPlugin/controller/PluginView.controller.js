@@ -49,7 +49,7 @@ sap.ui.define(
             PluginViewController.prototype.onInit.apply(this, arguments);
           }
 
-          this.postData = {
+          this.qtyPostData = {
             shopOrder: '',
             batchId: '',
             phase: '',
@@ -105,7 +105,7 @@ sap.ui.define(
           TablePersonalizeService.getPersData();
           TablePersonalizeService.setPersData({});
 
-          var oQuantityPostModel = new JSONModel(this.postData);
+          var oQuantityPostModel = new JSONModel(this.qtyPostData);
           this.getView().setModel(oQuantityPostModel, 'postModel');
           this.getView().setModel(new JSONModel([]), 'viewQuantityReportModel');
           this.getView().setModel(
@@ -392,9 +392,9 @@ sap.ui.define(
           oPostModel.setProperty('/description', '');
           oPostModel.setProperty('/reasonCode', '');
 
-          this.postData.yieldQuantity.value = '';
-          this.postData.scrapQuantity.value = '';
-          this.postData.customFieldData = '';
+          this.qtyPostData.yieldQuantity.value = '';
+          this.qtyPostData.scrapQuantity.value = '';
+          this.qtyPostData.customFieldData = '';
 
           var selectedOrder = oData.shopOrder;
           var selectedPhase =
@@ -1287,12 +1287,12 @@ sap.ui.define(
             oReasonCodeInput = this.byId('reasonCode');
 
           if (oScrapQtyInput.getValueState() == 'Error') {
-            this.postData.scrapQuantity.value = '';
+            this.qtyPostData.scrapQuantity.value = '';
             return;
           }
 
           if (!oScrapQtyInput.getValue()) {
-            this.postData.scrapQuantity.value = '';
+            this.qtyPostData.scrapQuantity.value = '';
           }
 
           //Check if reason code is provided in case of scrap quantity
@@ -1302,19 +1302,19 @@ sap.ui.define(
           }
 
           if (!this.byId('yieldQuantity').getValue()) {
-            this.postData.yieldQuantity.value = '';
+            this.qtyPostData.yieldQuantity.value = '';
           }
 
           var that = this;
-          this.postData.scrapQuantity.unitOfMeasure.uom = this.byId('uomScrap').getSelectedKey();
-          this.postData.yieldQuantity.unitOfMeasure.uom = this.byId('uomYield').getSelectedKey();
-          this.postData.scrapQuantity.unitOfMeasure.internalUom = this.unitList.filter(function(v) {
+          this.qtyPostData.scrapQuantity.unitOfMeasure.uom = this.byId('uomScrap').getSelectedKey();
+          this.qtyPostData.yieldQuantity.unitOfMeasure.uom = this.byId('uomYield').getSelectedKey();
+          this.qtyPostData.scrapQuantity.unitOfMeasure.internalUom = this.unitList.filter(function(v) {
             return v.value === that.byId('uomScrap').getSelectedKey();
           })[0].internalUom;
-          this.postData.yieldQuantity.unitOfMeasure.internalUom = this.unitList.filter(function(v) {
+          this.qtyPostData.yieldQuantity.unitOfMeasure.internalUom = this.unitList.filter(function(v) {
             return v.value === that.byId('uomYield').getSelectedKey();
           })[0].internalUom;
-          if (!this.postData.yieldQuantity.value && !this.postData.scrapQuantity.value) {
+          if (!this.qtyPostData.yieldQuantity.value && !this.qtyPostData.scrapQuantity.value) {
             MessageBox.error(this.getI18nText('quantityRequired'));
             return false;
           }
@@ -1328,19 +1328,19 @@ sap.ui.define(
           var productionUrl = this.getProductionDataSourceUri();
           var sUrl = productionUrl + 'quantityConfirmation/confirm';
 
-          if (this.postData.yieldQuantity.value == '') {
-            this.postData.yieldQuantity.value = '0';
+          if (this.qtyPostData.yieldQuantity.value == '') {
+            this.qtyPostData.yieldQuantity.value = '0';
           }
-          if (this.postData.scrapQuantity.value == '') {
-            this.postData.scrapQuantity.value = '0';
+          if (this.qtyPostData.scrapQuantity.value == '') {
+            this.qtyPostData.scrapQuantity.value = '0';
           }
           if (this.customFieldJson && this.customFieldJson.length > 0) {
-            this.postData.customFieldData = JSON.stringify(this.customFieldJson);
+            this.qtyPostData.customFieldData = JSON.stringify(this.customFieldJson);
           }
           var quantityConfirmationModel = this.byId('quantityConfirmationTable').getModel();
           var totalYield = quantityConfirmationModel.getData()[0].totalYieldQuantity.value;
-          this.postData.finalConfirmation = this.byId('finalConfirmation').getSelected();
-          this.postGrData(sUrl, this.postData);
+          this.qtyPostData.finalConfirmation = this.byId('finalConfirmation').getSelected();
+          this.postGrData(sUrl, this.qtyPostData);
           this.onCloseReportQuantityDialog();
         },
 
