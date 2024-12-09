@@ -4,6 +4,7 @@ sap.ui.define(
     'sap/dm/dme/podfoundation/controller/PluginViewController',
     'sap/dm/dme/formatter/DateTimeUtils',
     'sap/dm/dme/util/PlantSettings',
+    'sap/dm/dme/types/QuantityType',
     'sap/base/Log',
     'sap/m/MessageToast',
     'sap/ui/core/Fragment',
@@ -18,6 +19,7 @@ sap.ui.define(
     PluginViewController,
     DateTimeUtils,
     PlantSettings,
+    QuantityType,
     Log,
     MessageToast,
     Fragment,
@@ -30,6 +32,7 @@ sap.ui.define(
     'use strict';
 
     var oLogger = Log.getLogger('confirmationPlugin', Log.Level.INFO);
+    var SPAN_CONSTANT = 'XL3 L3 M3 S3';
 
     var oPluginViewController = PluginViewController.extend(
       'stellium.ext.podplugins.confirmationPlugin.controller.PluginView',
@@ -479,6 +482,408 @@ sap.ui.define(
           var activityConfirmationPluginOverviewModel = new JSONModel();
           activityConfirmationPluginOverviewModel.setData(this.activityConfirmationPluginList);
           oActivityList.setModel(activityConfirmationPluginOverviewModel);
+        },
+
+        onPressReportButton: function(oEvent) {
+          var oView = this.getView();
+          this.enableAllowOnlyBaseUoM();
+          this.enablePostingDateByConfiguration();
+          if (!this.byId('reportActivityDialog')) {
+            Fragment.load({
+              id: oView.getId(),
+              name: 'stellium.ext.podplugins.confirmationPlugin.view.fragments.ReportActivity',
+              controller: this
+            }).then(
+              function(oDialog) {
+                oDialog.setEscapeHandler(
+                  function(oPromise) {
+                    this.onCloseReportActivityDialog();
+                    oPromise.resolve();
+                  }.bind(this)
+                );
+                oView.addDependent(oDialog);
+                this.createFormContent(this.activityConfirmationPluginList.activitySummary);
+                oDialog.open();
+              }.bind(this)
+            );
+          } else {
+            this.byId('reportActivityForm').destroyContent();
+            this.createFormContent(this.activityConfirmationPluginList.activitySummary);
+            this.byId('reportActivityDialog').open();
+          }
+          setTimeout(this._enableConfirmButton.bind(this), 500);
+        },
+
+        enableAllowOnlyBaseUoM: function() {
+          var oConfiguration = this.oPluginConfiguration;
+          this.allowOnlyBaseUoM = false;
+          if (oConfiguration && typeof oConfiguration.allowOnlyBaseUoM !== 'undefined') {
+            this.allowOnlyBaseUoM = oConfiguration.allowOnlyBaseUoM;
+          }
+        },
+
+        enablePostingDateByConfiguration: function() {
+          var oConfiguration = this.oPluginConfiguration;
+          this.showPostingDate = true;
+          if (oConfiguration && typeof oConfiguration.showPostingDate !== 'undefined') {
+            this.showPostingDate = oConfiguration.showPostingDate;
+          }
+        },
+
+        onCloseReportActivityDialog: function() {
+          sap.ui.getCore().byId('activityFinalConfirmation').setSelected(false);
+          this.byId('activityConfirmBtn').setEnabled(false);
+          this.customFieldJson = [];
+          this.byId('reportActivityDialog').close();
+        },
+
+        createFormContent: function(oData) {
+          var oView = this.getView();
+          var selectedOrder, selectedOperationActivity, selectedBatchID, selectedStepID, selectedWorkcenter;
+          var oPodSelectionModel = this.getPodSelectionModel();
+
+          if (oPodSelectionModel.podType === 'WORK_CENTER' || oPodSelectionModel.podType === 'OPERATION') {
+            var oOp = this.selectedOrderData.selections[0];
+            selectedOrder = oPodSelectionModel.selections[0].shopOrder.shopOrder;
+            selectedOperationActivity = oOp.operation;
+            selectedBatchID = oOp.sfc;
+            selectedWorkcenter =
+              oPodSelectionModel.podType === 'WORK_CENTER' ? oPodSelectionModel.workCenter : oOp.workCenter;
+            selectedStepID = oPodSelectionModel.podType === 'WORK_CENTER' ? oOp.stepId : oOp.stepID;
+          } else {
+            selectedOrder = this.selectedOrderData.selectedShopOrder;
+            selectedOperationActivity =
+              this.selectedOrderData.orderSelectionType === 'PROCESS'
+                ? this.selectedOrderData.phaseId
+                : this.selectedOrderData.operation.operation;
+            selectedBatchID = this.selectedOrderData.selectedSfc;
+            selectedStepID = this.selectedOrderData.stepId;
+            selectedWorkcenter = this.selectedOrderData.workCenter.workcenter;
+          }
+
+          // Set the default values
+          oView.getModel('actPostModel').setProperty('/operationActivity', selectedOperationActivity);
+          oView.getModel('actPostModel').setProperty('/shopOrder', selectedOrder);
+          oView.getModel('actPostModel').setProperty('/batchId', selectedBatchID);
+          oView.getModel('actPostModel').setProperty('/postedBy', this.loggedInUser);
+          oView.getModel('actPostModel').setProperty('/stepId', selectedStepID);
+          oView.getModel('actPostModel').setProperty('/workCenter', selectedWorkcenter);
+
+          this.actPostData.activityList = [];
+          this.activityNeedToCreate = oData.length;
+          for (var i = 0; i < oData.length; i++) {
+            var oUom = oData[i].targetQuantity.unitOfMeasure.internalUom;
+            if (this.uomMap.hasOwnProperty(oUom)) {
+              this.createFormContentWithUom(oData[i], i);
+            } else if (oUom && oUom.length > 0) {
+              var productRestUrl = this.getProductRestDataSourceUri();
+              var oParameters = {};
+              var sUrl = productRestUrl + 'uoms/allRelatedUoms?uom=' + oUom;
+              this.fetchUomAndProceed(sUrl, oParameters, oData[i], i);
+            } else if (oUom === undefined || oUom.length === 0) {
+              this.activityNeedToCreate--;
+            }
+          }
+          if (this.activityNeedToCreate === 0) {
+            this.addFormContentWithSequence();
+            this.createPostedByAndPostingDateField(oData);
+            this.formContent = [];
+            this.byId('reportActivityDialog').setBusy(false);
+          }
+        },
+
+        addFormContentWithSequence: function() {
+          var oController = this;
+          this.formContent.sort(function(x, y) {
+            var a = x.sequence;
+            var b = y.sequence;
+            var c = x.activityData.activityId.toUpperCase();
+            var d = y.activityData.activityId.toUpperCase();
+            return a === b ? (c === d ? 0 : c > d ? 1 : -1) : a > b ? 1 : -1;
+          });
+          this.formContent.forEach(function(e) {
+            var oData = e.activityData;
+            var activityId = oData.activityId;
+            var internalUom = oData.targetQuantity.unitOfMeasure.internalUom;
+            var postedActivityValue = oData.actualQuantity.value;
+            var targetActivityValue = oData.targetQuantity.value;
+
+            var activityItem = {};
+            activityItem.activityId = activityId;
+            activityItem.activityText = oData.activityText;
+            activityItem.quantity = {};
+            activityItem.quantity.value = '';
+            activityItem.quantity.unitOfMeasure = {};
+            activityItem.quantity.unitOfMeasure.uom = oData.targetQuantity.unitOfMeasure.uom;
+            activityItem.quantity.unitOfMeasure.internalUom = internalUom;
+            activityItem.quantity.unitOfMeasure.shortText = '';
+            activityItem.quantity.unitOfMeasure.longText = '';
+            oController.actPostData.activityList.push(activityItem);
+            oController.getView().getModel('actPostModel').refresh();
+            oController.byId('reportActivityForm').addContent(e.oAcitivityLabel);
+            oController.byId('reportActivityForm').addContent(e.oAcitivityInput);
+            oController.byId('reportActivityForm').addContent(e.oAcitivitySelect);
+            oController.byId('reportActivityForm').addContent(e.oRemainingAcitivityLabel);
+            if (postedActivityValue < targetActivityValue) {
+              var oRemainingQty = (targetActivityValue - postedActivityValue).toFixed(3);
+              e.oAcitivityInput.setValue(Formatter.formatNumber(oRemainingQty).toString());
+              e.oAcitivityInput.fireLiveChange({ value: oRemainingQty });
+            }
+            var unitList = oController.uomMap[internalUom];
+            var oUnitModel = new JSONModel(unitList);
+            sap.ui.getCore().byId('Uom' + activityId).setModel(oUnitModel);
+          });
+        },
+
+        fetchUomAndProceed: function(sUrl, oParameters, oData, iterator) {
+          var that = this;
+          that.byId('reportActivityDialog').setBusy(true);
+          this.ajaxGetRequest(
+            sUrl,
+            oParameters,
+            function(oResponseData) {
+              var uomList = oResponseData;
+              for (var i = 0; i < uomList.length; i++) {
+                if (!that.uomMap.hasOwnProperty(uomList[i].internalUom)) {
+                  that.uomMap[uomList[i].internalUom] = uomList;
+                }
+              }
+              that.createFormContentWithUom(oData, iterator);
+              if (that.activityNeedToCreate === 0) {
+                that.addFormContentWithSequence();
+                that.createPostedByAndPostingDateField(oData);
+                that.formContent = [];
+                that.byId('reportActivityDialog').setBusy(false);
+              }
+            },
+            function(oError, oHttpErrorMessage) {
+              var err = oError ? oError : oHttpErrorMessage;
+              that.showErrorMessage(err, true, true);
+              that.byId('reportActivityDialog').setBusy(false);
+            }
+          );
+        },
+
+        createFormContentWithUom: function(oData, iterator) {
+          var that = this;
+          var oView = this.getView();
+          var oAcitivityLabelText = Formatter.createActivityLabelForPopup(
+            oData.activityText || oData.activityId,
+            this.getI18nText('Unit')
+          );
+          var oActivityId = oData.activityId;
+          var oUom = oData.targetQuantity.unitOfMeasure.uom;
+          var internalUoM = oData.targetQuantity.unitOfMeasure.internalUom;
+          var activitySeq = oData.sequence;
+          var oRemainingQuantityText =
+            this.getI18nText('Remaining') +
+            ':' +
+            ' ' +
+            (oData.actualQuantity.value < oData.targetQuantity.value
+              ? this.oFormatter.showValueWithUom(oData.targetQuantity.value - oData.actualQuantity.value, oUom)
+              : this.oFormatter.showValueWithUom(null, oUom));
+          var oAllowUomFlag;
+
+          if (this.allowOnlyBaseUoM) {
+            oAllowUomFlag = false;
+          } else {
+            oAllowUomFlag = true;
+          }
+          var oAcitivityLabel = new sap.m.Label('Label' + oActivityId, { text: oAcitivityLabelText });
+          var oAcitivityInput = new sap.m.Input('InputValue' + oActivityId, {
+            textAlign: 'Right',
+            change: that.onQuantityLiveChange.bind(that),
+            layoutData: new sap.ui.layout.GridData({ span: SPAN_CONSTANT })
+          });
+          oAcitivityInput.bindProperty('value', {
+            parts: [
+              { path: 'actPostModel>/activityList/' + iterator + '/quantity/value' },
+              { path: 'actPostModel>/activityList/' + iterator + '/quantity/unitOfMeasure/internalUom' }
+            ],
+            type: new QuantityType()
+          });
+          var oAcitivitySelect = new sap.m.Select('Uom' + oActivityId, {
+            selectedKey: internalUoM,
+            change: that.onChangeUom.bind(that),
+            enabled: oAllowUomFlag,
+            layoutData: new sap.ui.layout.GridData({ span: SPAN_CONSTANT })
+          }).bindAggregation('items', {
+            path: '/',
+            template: new sap.ui.core.Item({
+              key: '{internalUom}',
+              text: '{uom} - {shortText}'
+            })
+          });
+          var oRemainingAcitivityLabel = new sap.m.Text({
+            text: oRemainingQuantityText,
+            layoutData: new sap.ui.layout.GridData({ span: SPAN_CONSTANT })
+          });
+          var activityObject = {};
+          activityObject.oAcitivityLabel = oAcitivityLabel;
+          activityObject.oAcitivityInput = oAcitivityInput;
+          activityObject.oAcitivitySelect = oAcitivitySelect;
+          activityObject.oRemainingAcitivityLabel = oRemainingAcitivityLabel;
+          activityObject.sequence = activitySeq;
+          activityObject.activityData = oData;
+          this.formContent.push(activityObject);
+          this.activityNeedToCreate--;
+        },
+
+        onChangeUom: function(oEvent) {
+          var uomFieldId = oEvent.getSource().getId();
+          var obj = oEvent.getSource().getSelectedItem().getBindingContext().getObject();
+          for (var i = 0; i < this.actPostData.activityList.length; i++) {
+            if (this._endsWith(uomFieldId, this.actPostData.activityList[i].activityId)) {
+              this.actPostData.activityList[i].quantity.unitOfMeasure.internalUom = obj.internalUom;
+              this.actPostData.activityList[i].quantity.unitOfMeasure.uom = obj.uom;
+              break;
+            }
+          }
+        },
+
+        createPostedByAndPostingDateField: function(oData) {
+          var that = this;
+          this.getView().getModel('actPostModel').setProperty('/postingDate', this.getCurrentDateInPlantTimeZone());
+          var postedByLabel = new sap.m.Label('postedByLabel', { text: this.getI18nText('PostedBy') });
+          var postedByInput = new sap.m.Input('postedBy', {
+            enabled: false,
+            required: true,
+            value: '{actPostModel>/postedBy}',
+            layoutData: new sap.ui.layout.GridData({ span: 'XL6 L6 M6 S6' })
+          });
+          var postedDateLabel = new sap.m.Label('postingDateLabel', { text: this.getI18nText('PostingDate') });
+          var postedDate = new sap.m.DatePicker('postingDate', {
+            enabled: this.showPostingDate,
+            valueFormat: 'yyyy-MM-dd',
+            value: {
+              parts: ['actPostModel>/postingDate'],
+              formatter: Formatter.formatDate
+            },
+            layoutData: new sap.ui.layout.GridData({ span: 'XL6 L6 M6 S6' }),
+            change: that.onChangePostingDate.bind(that)
+          }).addStyleClass('sapUiSmallMarginBottom');
+          var finalConfirmationLabel = new sap.m.Label('finalConfirmationLabel', {
+            text: this.getI18nText('finalConfirmation')
+          });
+          var finalConfirmationCheckBox = new sap.m.CheckBox('activityFinalConfirmation', {
+            selected: '{actPostModel>/finalConfirmation}'
+          });
+
+          finalConfirmationCheckBox.setSelected(false);
+          if (this.selectedOrderData.allowFinalConfirmation) {
+            finalConfirmationCheckBox.setEnabled(true);
+          } else {
+            finalConfirmationCheckBox.setEnabled(false);
+          }
+
+          this.byId('reportActivityForm').addContent(postedByLabel);
+          this.byId('reportActivityForm').addContent(postedByInput);
+          if (this.oPluginConfiguration && this.oPluginConfiguration.customField1) {
+            var customFieldLabel1 = new sap.m.Label('customFieldLabel1', {
+              text: this.oPluginConfiguration.customField1
+            });
+            var customFieldValue1 = new sap.m.Input('customField1', {
+              value: '',
+              valueLiveUpdate: true,
+              liveChange: that.onCustomFieldLiveChange.bind(that),
+              layoutData: new sap.ui.layout.GridData({ span: 'XL6 L6 M6 S6' })
+            });
+            this.byId('reportActivityForm').addContent(customFieldLabel1);
+            this.byId('reportActivityForm').addContent(customFieldValue1);
+          }
+          this.byId('reportActivityForm').addContent(postedDateLabel);
+          this.byId('reportActivityForm').addContent(postedDate);
+          this.byId('reportActivityForm').addContent(finalConfirmationLabel);
+          this.byId('reportActivityForm').addContent(finalConfirmationCheckBox);
+        },
+
+        onPressConfirmActivityDialog: function() {
+          // Append Time
+          let appendedDateTime =
+            this.getView().getModel('actPostModel').getProperty('/postingDate') + ' ' + '00' + ':' + '00' + ':' + '00';
+          let postedDateTime = this.oFormatter.formatPlantDateTimeToUTCTimeZone(appendedDateTime);
+          this.getView().getModel('actPostModel').setProperty('/postingDate', postedDateTime);
+
+          this.dataToBeConfirmed = {
+            shopOrder: this.actPostData.shopOrder,
+            batchId: this.actPostData.batchId,
+            operationActivity: this.actPostData.operationActivity,
+            stepId: this.actPostData.stepId,
+            workCenter: this.actPostData.workCenter,
+            finalConfirmation: this.actPostData.finalConfirmation
+          };
+
+          this.dataToBeConfirmed.activityList = [];
+
+          for (var i = 0; i < this.actPostData.activityList.length; i++) {
+            if (this.actPostData.activityList[i].quantity.value) {
+              this.actPostData.activityList[i].postedBy = this.actPostData.postedBy;
+              this.actPostData.activityList[i].postingDate = this.actPostData.postingDate;
+              if (this.customFieldJson && this.customFieldJson.length > 0) {
+                this.actPostData.activityList[i].customFieldData = JSON.stringify(this.customFieldJson);
+              }
+              this.dataToBeConfirmed.activityList.push(this.actPostData.activityList[i]);
+            }
+          }
+
+          if (
+            this.actPostData.finalConfirmation &&
+            this.selectedOrderData.quantityValidation &&
+            !this.yieldOrScrapReported
+          ) {
+            if (this.selectedOrderData.quantityInComplete > 0 || this.selectedOrderData.quantityScrapped > 0) {
+              if (this.selectedOrderData.quantityInComplete === 0) {
+                this.createWarningPopUp(
+                  function() {
+                    this.reportActivity();
+                  }.bind(this)
+                );
+              } else {
+                this.reportActivity();
+              }
+            } else {
+              this.showErrorMessage(this.getI18nText('sfc.complete.validation.fail.completescrapped'), false, true);
+            }
+          } else {
+            this.reportActivity();
+          }
+        },
+
+        reportActivity() {
+          var activityConfirmationUrl = this.getActivityConfirmationRestDataSourceUri();
+          var sUrl = activityConfirmationUrl + 'activityconfirmation/confirm';
+          this.postActivityData(sUrl, this.dataToBeConfirmed);
+          this.onCloseReportActivityDialog();
+        },
+
+        createWarningPopUp: function(fnProceed, fnCancel) {
+          this._showMessageBox(function(bProceed) {
+            if (bProceed) {
+              fnProceed();
+            } else if (fnCancel) {
+              fnCancel();
+            }
+          });
+        },
+
+        _showMessageBox: function(fnCallback) {
+          var oWarningMsg = this.getNoYieldWarningMessage();
+          MessageBox.warning(oWarningMsg.message, {
+            title: 'Warning',
+            styleClass: 'sapUiSizeCompact',
+            actions: [oWarningMsg.button, MessageBox.Action.CANCEL],
+            onClose: function(oAction) {
+              fnCallback(oAction === oWarningMsg.button);
+            }
+          });
+        },
+
+        getNoYieldWarningMessage: function() {
+          var sWarningMsg = this.getI18nText('noYieldWarningMessage');
+          return {
+            message: sWarningMsg,
+            button: this.getI18nText('proceed')
+          };
         },
 
         getLoggedInUserAndPlant: function() {
@@ -1454,10 +1859,6 @@ sap.ui.define(
 
           //Reset the fields
           this._resetFields();
-        },
-
-        getCurrentDateInPlantTimeZone: function() {
-          return moment().tz(this.plantTimeZoneId).format('YYYY-MM-DD');
         },
 
         /***

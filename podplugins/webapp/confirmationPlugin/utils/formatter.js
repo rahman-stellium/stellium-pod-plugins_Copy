@@ -15,6 +15,10 @@ sap.ui.define(
         // This method intentionally left empty
       },
 
+      createActivityLabelForPopup : function(activityLabel, unitText){
+        return activityLabel + " / " + unitText;
+      },
+      
       enablePostingsButton: function(value) {
         if (value === 0 || value === null) {
           return false;
