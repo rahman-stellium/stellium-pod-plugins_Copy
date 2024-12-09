@@ -3,7 +3,7 @@ sap.ui.define(
     'sap/ui/model/json/JSONModel',
     'sap/dm/dme/podfoundation/controller/PluginViewController',
     'sap/dm/dme/formatter/DateTimeUtils',
-    "sap/dm/dme/util/PlantSettings",
+    'sap/dm/dme/util/PlantSettings',
     'sap/base/Log',
     'sap/m/MessageToast',
     'sap/ui/core/Fragment',
@@ -345,6 +345,132 @@ sap.ui.define(
               oActivityList.setBusy(false);
             }
           );
+        },
+
+        onPressPostingButton: function(oEvent) {
+          var oData = oEvent.getSource().getBindingContext().getObject();
+          var oGenericData = oEvent.getSource().getModel().getData();
+          var oParameters = {};
+          oParameters.shopOrder = oGenericData.shopOrder;
+          oParameters.batchId = oGenericData.batchId;
+          oParameters.operationActivity = oGenericData.operationActivity;
+          oParameters.stepId = oGenericData.stepId;
+          oParameters.workCenter = oGenericData.workCenter;
+          oParameters.activityId = oData.activityId;
+          var activityText = oData.activityText;
+          var activityUrl = this.getActivityConfirmationRestDataSourceUri();
+          var sUrl = activityUrl + 'activityconfirmation/postings/details/phase';
+          this.postFetchReportedActivityConfirmationData(sUrl, oParameters, activityText, oData.activityId);
+        },
+
+        postFetchReportedActivityConfirmationData: function(sUrl, oParameters, activityText, activityId) {
+          var that = this;
+          var oView = this.getView();
+          that.byId('activityList').setBusy(true);
+          this.ajaxGetRequest(
+            sUrl,
+            oParameters,
+            function(oResponseData) {
+              that.reportedActivityConfirmationList = oResponseData;
+              var viewActivityReportModel = new sap.ui.model.json.JSONModel(that.reportedActivityConfirmationList);
+              that.getView().setModel(viewActivityReportModel, 'viewActivityReportModel');
+              if (!that.byId('ActivityDetailsDialog')) {
+                Fragment.load({
+                  id: oView.getId(),
+                  name: 'stellium.ext.podplugins.confirmationPlugin.view.fragments.ActivityDetails',
+                  controller: that
+                }).then(function(oDialog) {
+                  oDialog.setEscapeHandler(
+                    function(oPromise) {
+                      that.onCloseActivityDetailsDialog();
+                      oPromise.resolve();
+                    }.bind(that)
+                  );
+                  oView.addDependent(oDialog);
+                  that
+                    .byId('ActivityDetailsDialog')
+                    .setTitle(that.getI18nText('ViewPostings', activityText || activityId));
+                  that.byId('ActivityTextColumn').setText(activityText || activityId);
+                  that.buildCustomFieldColumns(that.reportedActivityConfirmationList);
+                  oDialog.open();
+                });
+              } else {
+                that
+                  .byId('ActivityDetailsDialog')
+                  .setTitle(that.getI18nText('ViewPostings', activityText || activityId));
+                that.byId('ActivityTextColumn').setText(activityText || activityId);
+                that.buildCustomFieldColumns(that.reportedActivityConfirmationList);
+                that.byId('ActivityDetailsDialog').open();
+              }
+              that.byId('activityList').setBusy(false);
+            },
+            function(oError, oHttpErrorMessage) {
+              var err = oError ? oError : oHttpErrorMessage;
+              that.showErrorMessage(err, true, true);
+              that.reportedActivityConfirmationList = {};
+              that.byId('activityList').setBusy(false);
+            }
+          );
+        },
+
+        onCloseActivityDetailsDialog: function() {
+          var oTable = this.getView().byId('ActivityDetailsTable');
+          var oColumnListItem = this.getView().byId('ActivityDetailsCLItem');
+          var oTableLength = oTable.getColumns().length;
+          var oColumnListItemLength = oColumnListItem.getCells().length;
+          for (var i = oTableLength; i > 5; i--) {
+            oTable.removeColumn(oTable.getColumns()[i - 1]);
+          }
+          for (var j = oColumnListItemLength; j > 5; j--) {
+            oColumnListItem.removeCell(oColumnListItem.getCells()[j - 1]);
+          }
+          this.getView().byId('ActivityDetailsDialog').close();
+        },
+
+        formatActivityConfirmationStatus: function(statusKey) {
+          if (!statusKey) {
+            return '';
+          } else {
+            return this.getI18nText(statusKey);
+          }
+        },
+
+        buildCustomFieldColumns: function(activityDetailsData) {
+          var customFieldColumns = [];
+          var oTable = this.getView().byId('ActivityDetailsTable');
+          var oColumnListItem = this.getView().byId('ActivityDetailsCLItem');
+          for (var i = 0; i < activityDetailsData.activityDetails.length; i++) {
+            if (activityDetailsData.activityDetails[i].customFieldData) {
+              var customFieldJson = JSON.parse(activityDetailsData.activityDetails[i].customFieldData);
+              for (var j = 0; j < customFieldJson.length; j++) {
+                var position = customFieldJson[j].id.slice(-1);
+                activityDetailsData.activityDetails[i]['customFieldValue' + position] = customFieldJson[j].value;
+                if (!Object.values(customFieldColumns).includes(customFieldJson[j].id)) {
+                  customFieldColumns.push(customFieldJson[j].id);
+                }
+              }
+            }
+          }
+          customFieldColumns.sort();
+          for (var k = 0; k < customFieldColumns.length; k++) {
+            if (this.oPluginConfiguration && this.oPluginConfiguration[customFieldColumns[k]]) {
+              var customFieldValue = 'customFieldValue' + customFieldColumns[k].slice(-1);
+              var oColumnListCustomField = new sap.m.Text({
+                text: '{viewActivityReportModel>' + customFieldValue + '}'
+              });
+              oColumnListItem.addCell(oColumnListCustomField);
+              var oColumnCustomField = new sap.m.Column({
+                hAlign: 'Center',
+                vAlign: 'Middle'
+              });
+              var oHeaderCustomField = new sap.m.Text({
+                text: this.oPluginConfiguration[customFieldColumns[k]]
+              });
+              oColumnCustomField.setHeader(oHeaderCustomField);
+              oTable.addColumn(oColumnCustomField);
+            }
+          }
+          oTable.bindItems('viewActivityReportModel>/activityDetails', oColumnListItem, null, null);
         },
 
         setEmptyResponseToActivityTable: function(oActivityList, oTitleTextControl) {
