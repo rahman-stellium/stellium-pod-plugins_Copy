@@ -511,7 +511,7 @@ sap.ui.define(
             this.createFormContent(this.activityConfirmationPluginList.activitySummary);
             this.byId('reportActivityDialog').open();
           }
-          setTimeout(this._enableConfirmButton.bind(this), 500);
+          setTimeout(this._enableActConfirmButton.bind(this), 500);
         },
 
         enableAllowOnlyBaseUoM: function() {
@@ -727,6 +727,39 @@ sap.ui.define(
           activityObject.activityData = oData;
           this.formContent.push(activityObject);
           this.activityNeedToCreate--;
+        },
+
+        onQuantityLiveChange: function(oEvent) {
+          this.getView().byId('activityConfirmBtn').setEnabled(false);
+          // Adding explicit delay because of parellel validation of qty fields
+          setTimeout(this._enableActConfirmButton.bind(this), 500);
+        },
+
+        _enableActConfirmButton: function() {
+          var oView = this.getView();
+          var isValueExistInAnyInputField = false;
+          var isErrorStateExist = false;
+          var oFormContent = this.byId('reportActivityForm').getContent();
+          for (var k = 0; k < oFormContent.length; k++) {
+            if (oFormContent[k].getValueState && oFormContent[k].getValueState() === 'Error') {
+              isErrorStateExist = true;
+              break;
+            }
+          }
+          for (var i = 0; i < this.postData.activityList.length; i++) {
+            if (this.postData.activityList[i].quantity.value) {
+              isValueExistInAnyInputField = true;
+              break;
+            }
+          }
+
+          if (
+            isValueExistInAnyInputField &&
+            oView.getModel('postModel').getProperty('/postedBy') &&
+            !isErrorStateExist
+          ) {
+            this.getView().byId('activityConfirmBtn').setEnabled(true);
+          }
         },
 
         onChangeUom: function(oEvent) {
@@ -1882,50 +1915,6 @@ sap.ui.define(
           ErrorHandler.clearErrorState(this.byId('scrapQuantity'));
           ErrorHandler.clearErrorState(this.byId('postedBy'));
           ErrorHandler.clearErrorState(this.byId('postingDate'));
-        },
-
-        /***
-         * Validation for Quantity on live change
-         */
-        onQuantityLiveChange: function(oEvent) {
-          var oView = this.getView(),
-            oPostModel = oView.getModel('qtyPostModel'),
-            value = oEvent.getSource().getValue(),
-            quantity;
-
-          if (value) {
-            this.getView().byId('quantityConfirmBtn').setEnabled(true);
-          }
-          ErrorHandler.clearErrorState(oEvent.getSource());
-          if (this._endsWith(oEvent.getSource().getId(), 'yieldQuantity')) {
-            quantity = oPostModel.getProperty('/yieldQuantity/value');
-          } else {
-            quantity = oPostModel.getProperty('/scrapQuantity/value');
-          }
-
-          if (oEvent.getSource().getId().indexOf('scrapQuantity') > -1) {
-            if (oEvent.getParameters().newValue === '' || oEvent.getParameters().newValue == '0') {
-              oPostModel.setProperty('/reasonCode', '');
-              oPostModel.setProperty('/reasonCodeKey', '');
-              oPostModel.setProperty('/description', '');
-            }
-          }
-
-          if (
-            Number.isNaN(quantity) ||
-            (quantity && !this._validatePositiveNumber(quantity)) ||
-            parseFloat(quantity) === 0
-          ) {
-            ErrorHandler.setErrorState(oEvent.getSource(), this.getI18nText('POSITIVE_INPUT'));
-          } else {
-            ErrorHandler.clearErrorState(oEvent.getSource());
-
-            var yieldQuantityValue = oPostModel.getProperty('/yieldQuantity/value');
-            var scrapQuantityValue = oPostModel.getProperty('/scrapQuantity/value');
-            if (yieldQuantityValue > 0 || scrapQuantityValue > 0) {
-              this._enableConfirmButton();
-            }
-          }
         },
 
         onYieldQuantityLiveChange: function(oEvent) {
