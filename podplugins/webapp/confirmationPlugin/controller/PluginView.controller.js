@@ -746,8 +746,8 @@ sap.ui.define(
               break;
             }
           }
-          for (var i = 0; i < this.postData.activityList.length; i++) {
-            if (this.postData.activityList[i].quantity.value) {
+          for (var i = 0; i < this.actPostData.activityList.length; i++) {
+            if (this.actPostData.activityList[i].quantity.value) {
               isValueExistInAnyInputField = true;
               break;
             }
@@ -755,7 +755,7 @@ sap.ui.define(
 
           if (
             isValueExistInAnyInputField &&
-            oView.getModel('postModel').getProperty('/postedBy') &&
+            oView.getModel('actPostModel').getProperty('/postedBy') &&
             !isErrorStateExist
           ) {
             this.getView().byId('activityConfirmBtn').setEnabled(true);
@@ -887,6 +887,44 @@ sap.ui.define(
           var sUrl = activityConfirmationUrl + 'activityconfirmation/confirm';
           this.postActivityData(sUrl, this.dataToBeConfirmed);
           this.onCloseReportActivityDialog();
+        },
+
+        postActivityData: function(sUrl, oData) {
+          var that = this;
+          that.byId('activityList').setBusy(true);
+          this.ajaxPostRequest(
+            sUrl,
+            oData,
+            function(oResponseData) {
+              MessageToast.show(that.getI18nText('POSTING_SUCCESSFUL'));
+              that.activityConfirmationPluginList = oResponseData;
+              that.publish('refreshPhaseList', { stepId: that.selectedOrderData.stepId, sendToAllPages: true });
+              var userAuthFlag = that.selectedOrderData.userAuthorizedForWorkCenter;
+              that.activityConfirmationPluginList.userAuthorizedForWorkCenter =
+                userAuthFlag !== null && userAuthFlag !== undefined ? userAuthFlag : false;
+              that.activityConfirmationPluginList.isActivityExist = true;
+              that.activityConfirmationPluginList.phaseStartDate = that.selectedOrderData.actualStartDate;
+              that.activityConfirmationPluginList.phaseEndDate = that.selectedOrderData.actualEndDate;
+              that.activityConfirmationPluginList.podType = that.getPodSelectionModel().podType;
+              that.activityConfirmationPluginList.isDone = oData.finalConfirmation;
+              that.activityConfirmationPluginList.activitySummary.sort(function(x, y) {
+                var a = x.sequence;
+                var b = y.sequence;
+                var c = x.activityId.toUpperCase();
+                var d = y.activityId.toUpperCase();
+                return a === b ? (c === d ? 0 : c > d ? 1 : -1) : a > b ? 1 : -1;
+              });
+              var activityConfirmationPluginOverviewModel = new JSONModel();
+              activityConfirmationPluginOverviewModel.setData(that.activityConfirmationPluginList);
+              that.byId('activityList').setModel(activityConfirmationPluginOverviewModel);
+              that.byId('activityList').setBusy(false);
+            },
+            function(oError, oHttpErrorMessage) {
+              var err = oError ? oError : oHttpErrorMessage;
+              that.showErrorMessage(err, true, true);
+              that.byId('activityList').setBusy(false);
+            }
+          );
         },
 
         createWarningPopUp: function(fnProceed, fnCancel) {

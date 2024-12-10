@@ -1,12 +1,13 @@
 sap.ui.define(
   [
     'sap/m/GroupHeaderListItem',
+    'sap/dm/dme/util/PlantSettings',
     'sap/ui/core/MessageType',
     'sap/ui/core/ValueState',
     'sap/ui/core/format/DateFormat',
     'sap/ui/core/format/NumberFormat'
   ],
-  function(GroupHeaderListItem, MessageType, ValueState, DateFormat, NumberFormat) {
+  function(GroupHeaderListItem, PlantSettings, MessageType, ValueState, DateFormat, NumberFormat) {
     'use strict';
     const REASON_CODE_PATH_SEPARATOR = ' /\n';
     const REASON_CODE_MAX_DEPTH = 10;
@@ -15,17 +16,17 @@ sap.ui.define(
         // This method intentionally left empty
       },
 
-      createActivityLabelForPopup : function(activityLabel, unitText){
-        return activityLabel + " / " + unitText;
+      createActivityLabelForPopup: function(activityLabel, unitText) {
+        return activityLabel + ' / ' + unitText;
       },
-      
+
       enablePostingsButton: function(value) {
         if (value === 0 || value === null) {
           return false;
         }
         return true;
       },
-      
+
       formatReportButton: function(userAuthorizedForWorkCenter, isActivityExist, isDone) {
         return userAuthorizedForWorkCenter && isActivityExist && !isDone;
       },
@@ -56,6 +57,13 @@ sap.ui.define(
         } else {
           return DateInstance.format(new Date(oDate));
         }
+      },
+
+      //We are converting plant time to UTC time and the format should be "yyyy-MM-dd HH:mm:ss" as the API expects
+      //in this format only. Also DateTimeUtils doesn't have a function to get the UTC date time in above format.
+      formatPlantDateTimeToUTCTimeZone: function(dateTime) {
+        let postedDateTime = new Date(moment.tz(dateTime, PlantSettings.getTimeZone()).format());
+        return DateFormat.getDateInstance({ pattern: 'yyyy-MM-dd HH:mm:ss', UTC: true }).format(postedDateTime);
       },
 
       scrapQuantityEnabled: function(scrapQuantity) {
