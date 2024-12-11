@@ -7,6 +7,7 @@ sap.ui.define(
     'sap/dm/dme/types/QuantityType',
     'sap/base/Log',
     'sap/m/MessageToast',
+    'sap/m/MessageBox',
     'sap/ui/core/Fragment',
     'sap/ui/core/format/DateFormat',
     'sap/ui/model/Sorter',
@@ -22,6 +23,7 @@ sap.ui.define(
     QuantityType,
     Log,
     MessageToast,
+    MessageBox,
     Fragment,
     DateFormat,
     Sorter,
@@ -868,17 +870,20 @@ sap.ui.define(
               if (this.selectedOrderData.quantityInComplete === 0) {
                 this.createWarningPopUp(
                   function() {
-                    this.reportActivity();
+                    // this.reportActivity();
+                    this.onCloseReportActivityDialog();
                   }.bind(this)
                 );
               } else {
-                this.reportActivity();
+                // this.reportActivity();
+                this.onCloseReportActivityDialog();
               }
             } else {
               this.showErrorMessage(this.getI18nText('sfc.complete.validation.fail.completescrapped'), false, true);
             }
           } else {
-            this.reportActivity();
+            // this.reportActivity();
+            this.onCloseReportActivityDialog();
           }
         },
 
@@ -2079,8 +2084,14 @@ sap.ui.define(
           var quantityConfirmationModel = this.byId('quantityConfirmationTable').getModel();
           var totalYield = quantityConfirmationModel.getData()[0].totalYieldQuantity.value;
           this.qtyPostData.finalConfirmation = this.byId('finalConfirmation').getSelected();
-          this.postGrData(sUrl, this.qtyPostData);
+          // this.postGrData(sUrl, this.qtyPostData);
           this.onCloseReportQuantityDialog();
+        },
+
+        reportQuantity: function() {
+          var productionUrl = this.getProductionDataSourceUri();
+          var sUrl = productionUrl + 'quantityConfirmation/confirm';
+          this.postGrData(sUrl, this.qtyPostData);
         },
 
         /***
@@ -2421,6 +2432,11 @@ sap.ui.define(
 
         _endsWith: function(str, suffix) {
           return str.indexOf(suffix, str.length - suffix.length) !== -1;
+        },
+
+        onConfPluginSave: function() {
+          this.reportActivity();
+          this.reportQuantity();
         }
       }
     );
