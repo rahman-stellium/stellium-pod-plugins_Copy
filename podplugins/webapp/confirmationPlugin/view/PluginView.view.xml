@@ -161,6 +161,11 @@
                     </ColumnListItem>
                 </items>
             </Table>
+            <Toolbar id="idConfPluginFooterToolbar" design="Solid">
+                <ToolbarSpacer id="idConfPluginFooterToolbarSpacer" />
+                <Button id="idConfPluginSaveButton" type="Emphasized" text="Save" press=".onConfPluginSave" />
+                <Button id="idConfPluginCancelButton" type="Default" text="Cancel" press=".onConfPluginCancel" />
+            </Toolbar>
         </content>
     </Panel>
 </mvc:View>
