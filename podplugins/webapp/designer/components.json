@@ -29,6 +29,16 @@
       "i18n": "stellium.ext.podplugins.confirmationPlugin.i18n.i18n",
       "productionProcessEnabled": false,
       "supportedPodTypes": ["WORK_CENTER", "OPERATION", "ORDER", "OTHER", "MONITOR"]
+    },
+    {
+      "id": "stelliumPackingPlugin",
+      "type": "VIEW_PLUGIN",
+      "allowMultipleInstances": false,
+      "name": "stellium.ext.podplugins.packingPlugin",
+      "propertyEditor": "stellium.ext.podplugins.packingPlugin.builder.PropertyEditor",
+      "i18n": "stellium.ext.podplugins.packingPlugin.i18n.i18n",
+      "productionProcessEnabled": false,
+      "supportedPodTypes": ["WORK_CENTER", "OPERATION", "ORDER", "OTHER", "MONITOR"]
     }
   ]
 }
