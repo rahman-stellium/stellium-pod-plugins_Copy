@@ -5,6 +5,7 @@ sap.ui.define(
     'sap/dm/dme/formatter/DateTimeUtils',
     'sap/dm/dme/util/PlantSettings',
     'sap/dm/dme/types/QuantityType',
+    'sap/dm/dme/serverevent/Topic',
     'sap/base/Log',
     'sap/m/MessageToast',
     'sap/m/MessageBox',
@@ -21,6 +22,7 @@ sap.ui.define(
     DateTimeUtils,
     PlantSettings,
     QuantityType,
+    Topic,
     Log,
     MessageToast,
     MessageBox,
@@ -887,7 +889,7 @@ sap.ui.define(
           }
         },
 
-        reportActivity() {
+        reportActivity: function() {
           var activityConfirmationUrl = this.getActivityConfirmationRestDataSourceUri();
           var sUrl = activityConfirmationUrl + 'activityconfirmation/confirm';
           this.postActivityData(sUrl, this.dataToBeConfirmed);
@@ -1934,7 +1936,7 @@ sap.ui.define(
           this.getView().byId('reportQuantityDialog').close();
 
           //Reset the fields
-          this._resetFields();
+          // this._resetFields();
         },
 
         /***
@@ -2124,11 +2126,18 @@ sap.ui.define(
           );
         },
 
-        onCloseReportQuantityDialog: function() {
-          this.getView().byId('reportQuantityDialog').close();
+        reportQuantity: function() {
+          var productionUrl = this.getProductionDataSourceUri();
+          var sUrl = productionUrl + 'quantityConfirmation/confirm';
+          this.postGrData(sUrl, this.qtyPostData);
+        },
 
-          //Reset the fields
-          this._resetFields();
+        onConfPluginSave: function() {
+          if (ErrorHandler.hasErrors()) {
+            return;
+          }
+          this.reportActivity();
+          this.reportQuantity();
         },
 
         onReasonCodePress: function(oEvent) {
