@@ -40,9 +40,105 @@ sap.ui.define(
           }
         },
 
-        onBeforeRendering: function() {},
+        onBeforeRendering: function() {
+          var oViewModel = new JSONModel({
+            availableObjectsSelectedTab: 'availableSfcsTab',
+            availableSfcsListLength: 0,
+            availableSfcsSearchValue: null,
+            assignedObjectsListLength: 0,
+            assignedObjectsSearchValue: null,
+            availableSfcsSelectedAndValid: false,
+            assignedItemsSelected: false,
+            packingUnitsLength: 0,
+            availablePusLength: 0
+          });
+          this.getView().setModel(oViewModel, 'viewModel');
 
-        onAfterRendering: function() {}
+          // ObjectTypeFormatter.init(this.getOwnerComponent().getModel('i18n-objectType').getResourceBundle());
+          StatusFormatter.init(this.getOwnerComponent().getModel('i18n-status').getResourceBundle());
+
+          // load packing unit list by odata
+          this.loadPackingUnitsList();
+          // this.initializeUnitsListFilterBar();
+        },
+
+        onAfterRendering: function() {},
+
+        loadPackingUnitsList: function(sSearchValue) {
+          let oPodSelectionModel = this.getPodSelectionModel();
+
+          let sResource = this.getResourceFromPodSelectionModel(oPodSelectionModel);
+          let sQuery = sSearchValue || this.byId('packingUnitsSearch').getValue();
+
+          const sFilter = this.createFilterArgumentParam(sResource);
+
+          let oUnitsList = this.byId('packingUnitsList');
+          let oUnitsListItem = this.byId('unitsListItem');
+          let sErrorMessage = this.getI18nText('error.packingUnitsFetchFail.msg');
+
+          // resource in function call should be empty and its value should be in filter
+          let sUrl = `packing>/GetPackingsList(resource='',number='${sQuery}',order='',material='')`;
+
+          const oBindParams = {
+            path: sUrl,
+            template: oUnitsListItem,
+            events: {
+              dataRequested: function() {
+                oUnitsList.setBusy(true);
+              },
+              dataReceived: function(oResponse) {
+                oUnitsList.setNoDataText(oResponse.getParameter('error') ? sErrorMessage : null);
+                oUnitsList.setBusy(false);
+              }
+            },
+            sorter: new sap.ui.model.Sorter('modifiedDateTime', true)
+          };
+
+          if (sFilter) {
+            oBindParams.parameters = { $filter: sFilter };
+          }
+          oUnitsList.bindItems(oBindParams);
+        },
+
+        // Work Center POD and Operation POD return different getResource objects.
+        // WC POD returns a string with resource name, while Operation POD returns an object with resource name.
+        getResourceFromPodSelectionModel: function(oPodSelectionModel) {
+          const oResource = oPodSelectionModel.getResource();
+          if (!oResource) {
+            return '';
+          }
+
+          if (oResource.resource) {
+            return oResource.resource;
+          }
+
+          return oResource;
+        },
+
+        /**
+         * Creates a filter parameter for bindItems function call.
+         * Used with OData bindings.
+         * @param sResource
+         * @returns {string} filter with material or resource in filter statements. The values are not encoded.
+         */
+        createFilterArgumentParam: function(sResource) {
+          const sMaterialRef = this.sMaterialFilterRef;
+          if (!sResource && !sMaterialRef) {
+            return '';
+          }
+
+          if (this.sMaterialFilterRef && !sResource) {
+            return `contains(material,'${sMaterialRef}')`;
+          }
+
+          if (!this.sMaterialFilterRef && sResource) {
+            return `resource eq '${sResource}'`;
+          }
+
+          if (this.sMaterialFilterRef && sResource) {
+            return `contains(material,'${sMaterialRef}') and resource eq '${sResource}'`;
+          }
+        }
       }
     );
 

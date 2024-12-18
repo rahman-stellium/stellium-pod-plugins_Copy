@@ -1,31 +1,51 @@
 {
-    "sap.app": {
-        "id": "stellium.ext.podplugins.packingPlugin",
-        "type": "component",
-        "applicationVersion": {
-            "version": "1.0.0"
-        },
-        "embeddedBy": "../"
+  "sap.app": {
+    "id": "stellium.ext.podplugins.packingPlugin",
+    "type": "component",
+    "applicationVersion": {
+      "version": "1.0.0"
     },
+    "embeddedBy": "../"
+  },
 
-    "sap.ui5": {
-        "rootView": {
-            "viewName": "stellium.ext.podplugins.packingPlugin.view.PluginView",
-            "type": "XML",
-            "id": "packingPlugin"
-        },
-        "resources": {
-            "css": [{
-                "uri": "css/style.css"
-            }]
-        },
-        "models": {
-            "i18n": {
-                "type": "sap.ui.model.resource.ResourceModel",
-                "settings": {
-                    "bundleName": "stellium.ext.podplugins.packingPlugin.i18n.i18n"
-                }
-            }
+  "sap.ui5": {
+    "rootView": {
+      "viewName": "stellium.ext.podplugins.packingPlugin.view.PluginView",
+      "type": "XML",
+      "id": "packingPlugin"
+    },
+    "resources": {
+      "css": [
+        {
+          "uri": "css/style.css"
         }
+      ]
+    },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "stellium.ext.podplugins.packingPlugin.i18n.i18n"
+        }
+      },
+      "i18n-objectType": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "sap.dm.dme.i18n.objectType"
+        }
+      },
+      "i18n-resource": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "sap.dm.dme.i18n.resource"
+        }
+      },
+      "i18n-status": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "sap.dm.dme.i18n.status"
+        }
+      }
     }
+  }
 }
