@@ -32,12 +32,17 @@ sap.ui.define(
         /**
          * @see PluginViewController.onBeforeRenderingPlugin()
          */
-        onBeforeRenderingPlugin: function() {},
+        onBeforeRenderingPlugin: function() {
+          this.subscribe('phaseSelectionEvent', this.handlePhaseSelectionEvent, this);
+          this.publish('requestForPhaseData', this);
+        },
 
         onExit: function() {
           if (PluginViewController.prototype.onExit) {
             PluginViewController.prototype.onExit.apply(this, arguments);
           }
+
+          this.unsubscribe('phaseSelectionEvent', this.handlePhaseSelectionEvent, this);
         },
 
         onBeforeRendering: function() {
@@ -63,6 +68,10 @@ sap.ui.define(
         },
 
         onAfterRendering: function() {},
+
+        handlePhaseSelectionEvent: function(sChannelId, sEventId, oData) {
+          this.selectedOrderData = oData;
+        },
 
         loadPackingUnitsList: function(sSearchValue) {
           let oPodSelectionModel = this.getPodSelectionModel();
