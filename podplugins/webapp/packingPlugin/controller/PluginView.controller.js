@@ -5,9 +5,22 @@ sap.ui.define(
     'sap/base/Log',
     '../util/PackingPluginFormatter',
     'sap/dm/dme/formatter/GeneralFormatter',
-    'sap/dm/dme/formatter/StatusFormatter'
+    'sap/dm/dme/formatter/StatusFormatter',
+    "sap/dm/dme/service/ServiceClient",
+    'stellium/ext/podplugins/packingPlugin/controller/browse/PuMaterialBrowse',
+    'stellium/ext/podplugins/packingPlugin/controller/extensions/CreateExtension'
   ],
-  function(PluginViewController, JSONModel, Log, PackingPluginFormatter, GeneralFormatter, StatusFormatter) {
+  function(
+    PluginViewController,
+    JSONModel,
+    Log,
+    PackingPluginFormatter,
+    GeneralFormatter,
+    StatusFormatter,
+    ServiceClient,
+    PuMaterialBrowse,
+    CreateExtension
+  ) {
     'use strict';
 
     var oLogger = Log.getLogger('packingPlugin', Log.Level.INFO);
@@ -18,6 +31,8 @@ sap.ui.define(
         packingPluginFormatter: PackingPluginFormatter,
         generalFormatter: GeneralFormatter,
         statusFormatter: StatusFormatter,
+        createExtension: CreateExtension,
+        oServiceClient: new ServiceClient(),
 
         metadata: {
           properties: {}
@@ -27,6 +42,8 @@ sap.ui.define(
           if (PluginViewController.prototype.onInit) {
             PluginViewController.prototype.onInit.apply(this, arguments);
           }
+
+          this.fragments = {};
         },
 
         /**
@@ -147,7 +164,46 @@ sap.ui.define(
           if (this.sMaterialFilterRef && sResource) {
             return `contains(material,'${sMaterialRef}') and resource eq '${sResource}'`;
           }
+        },
+
+        onMaterialBrowse: function(oEvent) {
+          let oMaterialField = oEvent.getSource();
+          let oModel = this.getOwnerComponent().getModel('product');
+          const sFilterQuery =
+            "(materialType eq com.sap.mes.odata.MaterialType'PACKAGING' or materialType eq" +
+            " com.sap.mes.odata.MaterialType'RETURNABLE_PACKAGING') and currentVersion eq true";
+
+          PuMaterialBrowse.open(
+            this.getView(),
+            oMaterialField.getValue(),
+            oSelectedObject => {
+              this.sMaterialFilterRef = oSelectedObject.ref;
+              oMaterialField.setValue(oSelectedObject.name);
+              oMaterialField.setValueState(sap.ui.core.ValueState.None);
+              this.loadPackingUnitsList();
+            },
+            oModel,
+            sFilterQuery
+          );
+        },
+
+        onCreatePackingUnitPressed: function() {
+          if (!this.oDialog) {
+            this.oDialog = this.createPackDialog();
+          }
+
+          this.oDialog.open();
+        },
+
+        /**
+         *
+         * @returns {"sap.ui.base.Object"} Instance of a sap.ui.base.Object
+         * @public
+         */
+        createPackDialog: function() {
+          return this.createExtension.createPackDialog(this);
         }
+
       }
     );
 

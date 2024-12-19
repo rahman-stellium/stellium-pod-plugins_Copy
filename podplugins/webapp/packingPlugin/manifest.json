@@ -28,6 +28,24 @@
           "bundleName": "stellium.ext.podplugins.packingPlugin.i18n.i18n"
         }
       },
+      "i18n-enum": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "sap.dm.dme.i18n.enum"
+        }
+      },
+      "i18n-global": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "sap.dm.dme.i18n.global"
+        }
+      },
+      "i18n-material": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "sap.dm.dme.i18n.material"
+        }
+      },
       "i18n-objectType": {
         "type": "sap.ui.model.resource.ResourceModel",
         "settings": {
@@ -40,10 +58,34 @@
           "bundleName": "sap.dm.dme.i18n.resource"
         }
       },
+      "i18n-sfc": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "sap.dm.dme.i18n.sfc"
+        }
+      },
+      "i18n-shopOrder": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "sap.dm.dme.i18n.shopOrder"
+        }
+      },
       "i18n-status": {
         "type": "sap.ui.model.resource.ResourceModel",
         "settings": {
           "bundleName": "sap.dm.dme.i18n.status"
+        }
+      },
+      "i18n-workCenter": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "sap.dm.dme.i18n.workCenter"
+        }
+      },
+      "i18n-goodreceipt": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "sap.dm.dme.i18n.goodreceipt"
         }
       }
     }
