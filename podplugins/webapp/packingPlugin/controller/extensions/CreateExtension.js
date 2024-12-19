@@ -1,7 +1,7 @@
 sap.ui.define([
     "sap/ui/core/mvc/ControllerExtension",
     "stellium/ext/podplugins/packingPlugin/controller/extensions/CreateExtensionConstants",
-    "stellium/ext/podplugins/packingPlugin/util/CreatePackDialog",
+    "stellium/ext/podplugins/packingPlugin/controller/CreatePackDialog",
     "stellium/ext/podplugins/packingPlugin/controller/extensions/Wrappers"
 ], function (ControllerExtension, CreateConstants, CreatePackDialog, Wrappers) {
     "use strict";
