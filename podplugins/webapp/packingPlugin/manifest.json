@@ -10,7 +10,7 @@
 
   "sap.ui5": {
     "rootView": {
-      "viewName": "stellium.ext.podplugins.packingPlugin.view.PluginView",
+      "viewName": "stellium.ext.podplugins.packingPlugin.view.PackingUnits",
       "type": "XML",
       "id": "packingPlugin"
     },
@@ -86,6 +86,24 @@
         "type": "sap.ui.model.resource.ResourceModel",
         "settings": {
           "bundleName": "sap.dm.dme.i18n.goodreceipt"
+        }
+      }
+    },
+    "routing": {
+      "config": {
+        "routerClass": "sap.m.routing.Targets",
+        "viewType": "XML",
+        "viewPath": "stellium.ext.podplugins.packingPlugin.view",
+        "controlId": "packingPlugin",
+        "controlAggregation": "content",
+        "async": true
+      },
+      "targets": {
+        "packingUnits": {
+          "viewName": "PackingUnits"
+        },
+        "packingUnitDetails": {
+          "viewName": "PackingUnitDetails"
         }
       }
     }

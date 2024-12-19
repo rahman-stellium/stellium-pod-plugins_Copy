@@ -13,7 +13,7 @@ sap.ui.define(function () {
 
         /**
          * This function creates the CreatePackDialog used to create new Packing Unit item.
-         * The function argument is the PackingUnitsController sap.dm.dme.packingplugins.packingPlugin.controller.CreatePackDialog
+         * The function argument is the PackingUnitsController stellium.ext.podplugins.packingPlugin.controller.CreatePackDialog
          * <pre>
          *   For OverrideExecution.Instead:
          *      createPackDialog: function(oPackingUnitsController) {}

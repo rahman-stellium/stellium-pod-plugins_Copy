@@ -1,4 +1,4 @@
-<mvc:View controllerName="stellium.ext.podplugins.packingPlugin.controller.PluginView" 
+<mvc:View controllerName="stellium.ext.podplugins.packingPlugin.controller.PackingUnits" 
     height="100%"
     xmlns:mvc="sap.ui.core.mvc" 
     xmlns:fb="sap.ui.comp.filterbar"

@@ -1,16 +1,23 @@
-sap.ui.define([
-    "sap/dm/dme/podfoundation/component/production/ProductionUIComponent"
-], function(ProductionUIComponent) {
-    "use strict";
+sap.ui.define(['sap/dm/dme/podfoundation/component/production/ProductionUIComponent'], function(ProductionUIComponent) {
+  'use strict';
 
-    /**
+  /**
      * 
      */
-    var Component = ProductionUIComponent.extend("stellium.ext.podplugins.packingPlugin.Component", {
-        metadata : {
-            manifest : "json"
-        }
-    });
+  var Component = ProductionUIComponent.extend('stellium.ext.podplugins.packingPlugin.Component', {
+    metadata: {
+      manifest: 'json'
+    },
 
-    return Component;
+    displayTarget: function(sTargetName, oData) {
+      this.clearTarget();
+      this.getTargets().display(sTargetName, oData);
+    },
+
+    clearTarget: function() {
+      this.getRootControl().byId('packingPlugin').removeAllContent();
+    }
+  });
+
+  return Component;
 });

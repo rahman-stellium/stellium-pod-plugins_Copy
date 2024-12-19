@@ -13,7 +13,7 @@ sap.ui.define([
      *    onPackPressEvent()
      *    onUnpackPressEvent()
      * @class
-     * <code>sap.dm.dme.packingplugins.packingPlugin.controller.extensions.PluginEventExtension</code> provides
+     * <code>stellium.ext.podplugins.packingPlugin.controller.extensions.PluginEventExtension</code> provides
      * functions that handles plugin events.  Custom extensions can be created to
      * override or modify core behaviour.
      *
@@ -21,9 +21,9 @@ sap.ui.define([
      *
      * @constructor
      * @public
-     * @alias sap.dm.dme.packingplugins.packingPlugin.controller.extensions.PluginEventExtension
+     * @alias stellium.ext.podplugins.packingPlugin.controller.extensions.PluginEventExtension
      */
-    let PluginEventExtension = ControllerExtension.extend("sap.dm.dme.packingplugins.packingPlugin.controller.extensions.PluginEventExtension", {
+    let PluginEventExtension = ControllerExtension.extend("stellium.ext.podplugins.packingPlugin.controller.extensions.PluginEventExtension", {
         metadata: {
             methods: {
                 onPackingUnitChangeEvent: { "final": false, "public": true },

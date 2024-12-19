@@ -14,7 +14,7 @@ sap.ui.define([
      * </pre>
      *
      * @class
-     * <code>sap.dm.dme.packingplugins.packingPlugin.controller.extensions.CreateExtension</code> provides
+     * <code>stellium.ext.podplugins.packingPlugin.controller.extensions.CreateExtension</code> provides
      * functions that creates the list table and toolbar.  Custom extensions can be created to
      * override or modify core behaviour.
      *
@@ -22,7 +22,7 @@ sap.ui.define([
      *
      * @constructor
      * @public
-     * @alias sap.dm.dme.packingplugins.packingPlugin.controller.extensions.CreateExtension
+     * @alias stellium.ext.podplugins.packingPlugin.controller.extensions.CreateExtension
      */
     let CreateExtension = ControllerExtension.extend("stellium.ext.podplugins.packingPlugin.controller.extensions.CreateExtension", {
         metadata: {
@@ -64,7 +64,7 @@ sap.ui.define([
      *      Method is called to notify extension developers that the standard CreatePackDialog is about to
      *      be created. You can setup some flags or call additional events here.
      *      The UI might not yet be opened. Return value is ignored. Standard CreatePackDialog
-     *      <code>sap.dm.dme.packingplugins.packingPlugin.controller.CreatePackdialog</code> will be used as a dialog.
+     *      <code>stellium.ext.podplugins.packingPlugin.controller.CreatePackdialog</code> will be used as a dialog.
      *
      *      createPackDialog: function(oPackingUnitController) {}
      *
@@ -72,7 +72,7 @@ sap.ui.define([
      *      Method is called to notify extension developers that the standard CreatePackDialog was just created.
      *      You can setup some flags or call additional events here.
      *      The UI might not yet be opened. Return value is ignored. Standard CreatePackDialog
-     *      <code>sap.dm.dme.packingplugins.packingPlugin.controller.CreatePackdialog</code> will be used as a dialog.
+     *      <code>stellium.ext.podplugins.packingPlugin.controller.CreatePackdialog</code> will be used as a dialog.
      *
      *      createPackDialog: function(oPackingUnitController) {}
      *</pre>
