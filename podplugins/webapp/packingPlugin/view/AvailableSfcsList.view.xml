@@ -22,7 +22,7 @@
                             visibleInAdvancedArea="true">
                             <fb:control>
                                 <Input id="availableSfcsShopOrderFilter" change="onAvailableSfcsFilterValueChange"
-                                    value="{viewModel>/availableSfcsShopOrder}" showValueHelp="true"
+                                    value="{viewModel>/availableSfcsShopOrder}" showValueHelp="true" editable="false"
                                     valueHelpRequest="onFilterAvailableSfcsByOrder" />
                             </fb:control>
                         </fb:FilterGroupItem>

@@ -6,9 +6,10 @@ sap.ui.define([
     "sap/dm/dme/types/QuantityType",
     "sap/dm/dme/formatter/NumberFormatter",
     "sap/dm/dme/browse/ShopOrderBrowse",
-    "stellium/ext/podplugins/packingPlugin/controller/browse/PuMaterialBrowse"
+    "stellium/ext/podplugins/packingPlugin/controller/browse/PuMaterialBrowse",
+    "sap/m/MessageBox"
 ], function (UnitBaseObjectController, JSONModel, ListFilter, PodType, QuantityType, NumberFormatter, ShopOrderBrowse,
-    PuMaterialBrowse) {
+    PuMaterialBrowse, MessageBox) {
     "use strict";
 
     const aSfcI18nMapping = {
@@ -54,7 +55,9 @@ sap.ui.define([
             this.configureListFilterBarSearchLayout(oAvailableSfcsListFilterBar);
             this.setAllowedSfcStatuses();
             this.oAvailableSfcsListFilter.clearFilters();
-            this.runInitialFilters();
+            setTimeout(function(){
+                this.runInitialFilters();
+            }.bind(this), 1000);
         },
 
         onExit: function () {
@@ -75,7 +78,15 @@ sap.ui.define([
         },
 
         _availableObjectsTableFiltersCleanup: function () {
+            var oOrderFilterInput = this.getView().byId('availableSfcsShopOrderFilter');
+            //Clear filters
             this.oAvailableSfcsListFilter.clearFilters();
+            
+            //Set the shopOrder value to the fitlerbar
+            var oSelection = this.getPodSelectionModel().getSelection(),
+                oShopOrderSelection = oSelection.getShopOrder();
+            oOrderFilterInput.setValue(oShopOrderSelection.shopOrder);
+
             this._filterAvailableObjects(this.getExternalFilters());
         },
 
@@ -89,7 +100,7 @@ sap.ui.define([
                 this.getViewModel().setProperty("/availableSfcsShopOrder", oOrderData.shopOrder);
                 this._filterAvailableObjects(this.getExternalFilters());
                 bFilterCalled = true;
-            }
+            } 
             return bFilterCalled;
         },
 
@@ -203,6 +214,21 @@ sap.ui.define([
         onMoveToAssigned: function () {
             let oAvailableSfcsList = this.getAvailableSfcsList();
             this.aMovedContent = oAvailableSfcsList.getSelectedContexts();
+
+            var aAllowedStatuses = this.getAllowedSfcStatuses();
+
+            //Only SFCs with status 'DONE' will be considered for packing
+            var bIsValidSFCforPacking = this.aMovedContent.every(function(oContext){
+                var oSFCData = oContext.getObject();
+                // return aAllowedStatuses.find(status=> oSFCData.status === status);
+                return oSFCData.status === 'DONE'
+            });
+
+            if(!bIsValidSFCforPacking){
+                // MessageBox.error("Packing only allowed for SFCs with status: "+ aAllowedStatuses.join(', '));
+                MessageBox.error("Packing only allowed for SFCs with status: DONE");
+                return;
+            }
 
             if (this.aMovedContent.length > 0) {
                 this.aMovedContent = this.convertSelectedSfcs(this.aMovedContent);
