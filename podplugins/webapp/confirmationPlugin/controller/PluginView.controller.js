@@ -9,6 +9,7 @@ sap.ui.define(
     'sap/base/Log',
     'sap/m/MessageToast',
     'sap/m/MessageBox',
+    'sap/m/TablePersoController',
     'sap/ui/core/Fragment',
     'sap/ui/core/format/DateFormat',
     'sap/ui/model/Sorter',
@@ -26,6 +27,7 @@ sap.ui.define(
     Log,
     MessageToast,
     MessageBox,
+    TablePersoController,
     Fragment,
     DateFormat,
     Sorter,
@@ -129,6 +131,11 @@ sap.ui.define(
           this._mViewSettingsDialogs = {};
           TablePersonalizeService.getPersData();
           TablePersonalizeService.setPersData({});
+          this._oTableSettings = new TablePersoController({
+            table: this.byId('postingsTable'),
+            componentName: 'settings',
+            persoService: TablePersonalizeService
+          }).activate();
 
           var oQuantityPostModel = new JSONModel(this.qtyPostData);
           this.getView().setModel(oQuantityPostModel, 'qtyPostModel');
@@ -2168,18 +2175,22 @@ sap.ui.define(
 
           var aActivityList = this.actPostData.activityList;
           for (var i = 0; i < aActivityList.length; i++) {
-            oPayload.confirmations[`WorkQuantityUnit${i+1}Isocode`] = aActivityList[i].quantity.unitOfMeasure.uom;
-            oPayload.confirmations[`OpConfirmedWorkQuantity${i+1}`] = aActivityList[i].quantity.value;
+            oPayload.confirmations[`WorkQuantityUnit${i + 1}Isocode`] = aActivityList[i].quantity.unitOfMeasure.uom;
+            oPayload.confirmations[`OpConfirmedWorkQuantity${i + 1}`] = aActivityList[i].quantity.value;
           }
 
-          var sUrl = 'https://djn-int-prod-dmc-d42lnn2u.it-cpi023-rt.cfapps.eu20-001.hana.ondemand.com/http/Confirmations';
-          this.ajaxPostRequest(sUrl, oPayload, function(oResponse){
-            console.log(oResponse)
-          }.bind(this)),
-          function(oError, oHttpErrorMessage) {
+          var sUrl =
+            'https://djn-int-prod-dmc-d42lnn2u.it-cpi023-rt.cfapps.eu20-001.hana.ondemand.com/http/Confirmations';
+          this.ajaxPostRequest(
+            sUrl,
+            oPayload,
+            function(oResponse) {
+              console.log(oResponse);
+            }.bind(this)
+          ), function(oError, oHttpErrorMessage) {
             var err = oError ? oError : oHttpErrorMessage;
             that.showErrorMessage(err, true, true);
-          }
+          };
         },
 
         onReasonCodePress: function(oEvent) {
