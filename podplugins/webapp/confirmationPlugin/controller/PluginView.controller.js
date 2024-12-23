@@ -2126,18 +2126,60 @@ sap.ui.define(
           );
         },
 
-        reportQuantity: function() {
-          var productionUrl = this.getProductionDataSourceUri();
-          var sUrl = productionUrl + 'quantityConfirmation/confirm';
-          this.postGrData(sUrl, this.qtyPostData);
-        },
-
         onConfPluginSave: function() {
           if (ErrorHandler.hasErrors()) {
             return;
           }
           this.reportActivity();
           this.reportQuantity();
+          this.reportConfirmation();
+        },
+
+        reportConfirmation: function() {
+          var oPayload = {
+            dmConfirmation: 0,
+            dmActCounter: 0,
+            dmQtyCounter: 0,
+            confirmations: {
+              OrderID: this.qtyPostData.shopOrder,
+              OrderOperation: this.qtyPostData.phase.split('-').pop(),
+              ConfirmationText: '',
+              Language: 'EN',
+              EnteredByUser: this.qtyPostData.userId,
+              LastChangedByUser: this.qtyPostData.userId,
+              ConfirmationUnit: this.qtyPostData.yieldQuantity.unitOfMeasure.uom,
+              ConfirmationUnitIsocode: this.qtyPostData.yieldQuantity.unitOfMeasure.internalUom,
+              ConfirmationYieldQuantity: this.qtyPostData.yieldQuantity.value,
+              ConfirmationScrapQuantity: this.qtyPostData.scrapQuantity.value,
+              WorkQuantityUnit1Isocode: '',
+              OpConfirmedWorkQuantity1: 0,
+              WorkQuantityUnit2Isocode: '',
+              OpConfirmedWorkQuantity2: 0,
+              WorkQuantityUnit3Isocode: '',
+              OpConfirmedWorkQuantity3: 0,
+              WorkQuantityUnit4Isocode: '',
+              OpConfirmedWorkQuantity4: 0,
+              WorkQuantityUnit5Isocode: '',
+              OpConfirmedWorkQuantity5: 0,
+              WorkQuantityUnit6Isocode: '',
+              OpConfirmedWorkQuantity6: 0
+            }
+          };
+
+          var aActivityList = this.actPostData.activityList;
+          for (var i = 0; i < aActivityList.length; i++) {
+            oPayload.confirmations[`WorkQuantityUnit${i+1}Isocode`] = aActivityList[i].quantity.unitOfMeasure.uom;
+            oPayload.confirmations[`OpConfirmedWorkQuantity${i+1}`] = aActivityList[i].quantity.value;
+          }
+
+          var sUrl = 'https://djn-int-prod-dmc-d42lnn2u.it-cpi023-rt.cfapps.eu20-001.hana.ondemand.com/http/Confirmations';
+          this.ajaxPostRequest(sUrl, oPayload, function(oResponse){
+            console.log(oResponse)
+          }.bind(this)),
+          function(oError, oHttpErrorMessage) {
+            var err = oError ? oError : oHttpErrorMessage;
+            that.showErrorMessage(err, true, true);
+          }
         },
 
         onReasonCodePress: function(oEvent) {
@@ -2441,11 +2483,6 @@ sap.ui.define(
 
         _endsWith: function(str, suffix) {
           return str.indexOf(suffix, str.length - suffix.length) !== -1;
-        },
-
-        onConfPluginSave: function() {
-          this.reportActivity();
-          this.reportQuantity();
         }
       }
     );
