@@ -2161,7 +2161,7 @@ sap.ui.define(
           }
           this.reportActivity();
           this.reportQuantity();
-          this.reportConfirmation();
+          // this.reportConfirmation();
         },
 
         reportConfirmation: function() {
