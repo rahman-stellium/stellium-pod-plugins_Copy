@@ -44,6 +44,7 @@
         </f:header>
         <f:content>
             <Table id="idOrdersTable" 
+                growing="true"
                 updateStarted=".onBeforeTableUpdate"
                 items="{masterList>/}">
                 <headerToolbar>
