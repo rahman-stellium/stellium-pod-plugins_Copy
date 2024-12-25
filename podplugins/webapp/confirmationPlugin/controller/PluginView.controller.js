@@ -171,6 +171,24 @@ sap.ui.define(
             this.subscribe('phaseSelectionEvent', this.onPhaseSelected, this);
             this.publish('requestForPhaseData', this);
           }
+
+          this._setShowFooterToolbar();
+        },
+
+        _setShowFooterToolbar: function() {
+          var oActivityReportBtn = this.getView().byId('reportButton'),
+            oQuantitiesModel = this.getView().getModel('quantitiesModel'),
+            aQtyItems = oQuantitiesModel.getProperty('/value'),
+            bFlag = false;
+
+          bFlag = aQtyItems.every(item => item.userAuthorizedForWorkCenter && item.status !== 'COMPLETED');
+
+          if (bFlag) {
+            bFlag = oActivityReportBtn.getEnabled();
+          }
+
+          var oToolbar = this.getView().byId('idConfPluginFooterToolbar');
+          oToolbar.setVisible(bFlag);
         },
 
         onExit: function() {
@@ -351,6 +369,8 @@ sap.ui.define(
                 that.loggedInUser = that.loggedInUser ? that.loggedInUser : globalLoggedInUser.userId;
                 oActivityList.setBusy(false);
               }
+
+              that._setShowFooterToolbar();
             },
             function(oError, oHttpErrorMessage) {
               var err = oError ? oError : oHttpErrorMessage;
@@ -1172,6 +1192,8 @@ sap.ui.define(
                 oTable.setModel(quantityConfirmationOverviewModel);
                 oTable.setBusy(false);
               }
+
+              that._setShowFooterToolbar();
             },
             function(oError, oHttpErrorMessage) {
               var err = oError ? oError : oHttpErrorMessage;
