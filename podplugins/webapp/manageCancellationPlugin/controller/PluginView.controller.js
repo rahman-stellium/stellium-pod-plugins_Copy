@@ -129,7 +129,7 @@ sap.ui.define(
           if (plannedStartDate && plannedCompleteDate && plannedCompleteDate < plannedStartDate) {
             // If the completion date is before the start date, show an error state
             sourceControl.setValueState('Error');
-            sourceControl.setValueStateText(this.getResourceBundle().getText('message.startDateBeforeCompletionDate'));
+            sourceControl.setValueStateText(this.getI18nText('message.startDateBeforeCompletionDate'));
           } else {
             // Clear any error states
             this.byId('idPlannedStartInput').setValueState('None');
@@ -271,7 +271,7 @@ sap.ui.define(
             timeZone = timeZone || 'Africa/Bamako';
 
             // Format the date using the specified time zone
-            return moment.tz(a.dateFormat(oDate, 'yyyy-MM-dd hh:mm:ss'), timeZone).utc().format();
+            return moment.tz(Formatter.dateFormat(oDate, 'yyyy-MM-dd hh:mm:ss'), timeZone).utc().format();
           }
           // Return the input as-is if it's a string or falsy
           return oDate;

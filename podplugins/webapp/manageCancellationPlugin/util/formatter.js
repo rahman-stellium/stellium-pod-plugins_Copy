@@ -40,6 +40,24 @@ sap.ui.define(['sap/ui/core/format/DateFormat', 'sap/ui/core/date/UI5Date'], fun
         oStartDate = UI5Date.getInstance(sStartDate),
         oEndDate = UI5Date.getInstance(sEndDate);
       return oDateFormatter.format(oStartDate) + ' - ' + oDateFormatter.format(oEndDate);
+    },
+
+    dateFormat: function(t, e) {
+      /(y+)/.test(e) && (e = e.replace(RegExp.$1, (t.getFullYear() + '').substr(4 - RegExp.$1.length)));
+      var a = {
+        'M+': t.getMonth() + 1,
+        'd+': t.getDate(),
+        'h+': t.getHours(),
+        'm+': t.getMinutes(),
+        's+': t.getSeconds(),
+        'q+': Math.floor((t.getMonth() + 3) / 3),
+        S: t.getMilliseconds()
+      };
+      for (var r in a) {
+        new RegExp('(' + r + ')').test(e) &&
+          (e = e.replace(RegExp.$1, RegExp.$1.length === 1 ? a[r] : ('00' + a[r]).substr(('' + a[r]).length)));
+      }
+      return e;
     }
   };
 });
