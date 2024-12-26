@@ -109,6 +109,7 @@ sap.ui.define(
 
           this.cancel = false;
           this.activityConfirmationPageNo = 0;
+          this.quantityConfirmationPageNo = 0;
           this.goodsIssuePageNo = 0;
           this.goodsReceiptPageNo = {
             FINISH_GOOD: 0,
@@ -185,26 +186,60 @@ sap.ui.define(
           this.activityConfirmationPageNo = 0;
 
           this.getOrderDetail(oQuery.shopOrder);
-          // this.getActivityConfirmationItems();
+        },
+
+        onRefreshBtnPress: function() {
+          this.getConfirmationData();
+        },
+
+        getConfirmationData: function() {
+          var aPromises = [];
+          aPromises.push(this.getActivityConfirmations());
+          aPromises.push(this.getQuantityConfirmationItems());
+
+          Promise.all(aPromises).then(
+            function() {
+              console.log(this.getView().getModel('quantityConfirmationItems').getData());
+              console.log(this.getView().getModel('activityConfirmationItems').getData());
+            }.bind(this)
+          );
+        },
+
+        getActivityConfirmations: function() {
+          var that = this;
+          return that
+            .getActivityConfirmationItems()
+            .then(function(oResponse) {
+              let aData = [];
+              var oActConfItemsModel = that.getView().getModel('activityConfirmationItems');
+              if (that.activityConfirmationPageNo === 0) {
+                aData = oResponse.content;
+              } else {
+                aData = oActConfItemsModel.getData().concat(oResponse.content);
+              }
+              that.cancel = false;
+              that.activityConfirmationPageNo++;
+              return that.getActivityConfirmationOperations(aData, oActConfItemsModel, oResponse.totalElements);
+            })
+            .then(function(aData) {
+              var oActConfItemsModel = that.getView().getModel('activityConfirmationItems');
+              oActConfItemsModel.setData(aData);
+            });
         },
 
         getOrderDetail: function(sShopOrder) {
           const sPlant = PlantSettings.getCurrentPlant();
           const sUrl = this.getDemandRestDataSourceUri() + 'v1/orders?order=' + sShopOrder + '&plant=' + sPlant;
 
-          // $.ajaxSettings.async = false;
           this.ajaxGetRequest(
             sUrl,
             null,
             function(oResponse) {
               this.getView().getModel('viewModel').setProperty('/order', oResponse);
-              this.getActivityConfirmationItems();
-              this.getQuantityConfirmationItems();
+              this.getConfirmationData();
             }.bind(this),
             this._requestFailure.bind(this)
           );
-
-          // $.ajaxSettings.async = true;
         },
 
         getActivityConfirmationItems: function(oSort) {
@@ -233,70 +268,62 @@ sap.ui.define(
             this.activityConfirmationPageNo +
             '&size=20';
 
-          this.ajaxGetRequest(
-            sUrl,
-            null,
-            this._readConfirmationItemsSuccess.bind(this),
-            this._requestFailure.bind(this)
+          return new Promise(
+            function(resolve, reject) {
+              this.ajaxGetRequest(
+                sUrl,
+                null,
+                function(oResponse) {
+                  resolve(oResponse);
+                }.bind(this),
+                function() {
+                  this._requestFailure(...arguments);
+                  reject();
+                }.bind(this)
+              );
+            }.bind(this)
           );
         },
 
-        _readConfirmationItemsSuccess: function(oResponse) {
-          if (oResponse) {
-            this.getView()
-              .getModel('data')
-              .setProperty('/postingTitle', this.getI18nText('postingTitle', [oResponse.totalElements]));
-            const oActConfItemsModel = this.getView().getModel('activityConfirmationItems');
-            let aData = [];
-            if (this.activityConfirmationPageNo === 0) {
-              aData = oResponse.content;
-            } else {
-              aData = oActConfItemsModel.getData().concat(oResponse.content);
+        getActivityConfirmationOperations: function(aData, oModel) {
+          var that = this;
+          return new Promise(function(resolve, reject) {
+            if (aData.length < 1) {
+              resolve(aData);
             }
-            this.getActivityConfirmationOperations(aData, oActConfItemsModel, oResponse.totalElements);
-            this.cancel = false;
-            this.activityConfirmationPageNo++;
-          }
-          this.byId('idConfirmationsTable').setBusy(false);
-          this.byId('headerRefresh').setEnabled(true);
-        },
 
-        getActivityConfirmationOperations: function(aData, oModel, iTotalElements) {
-          let aActivityList = [];
-          for (let i = 0; i < aData.length; i++) {
-            aActivityList.push(aData[i].operationActivity);
-          }
-          const sActivities = aActivityList.join(',');
+            //Create activities string
+            var aActivityList = [];
+            for (var i = 0; i < aData.length; i++) {
+              aActivityList.push(aData[i].operationActivity);
+            }
+            const sActivities = aActivityList.join(',');
 
-          if (aData.length > 0) {
-            const sUrl =
-              this.getDemandRestDataSourceUri() +
+            //Create URL for service call
+            var sUrl =
+              that.getDemandRestDataSourceUri() +
               'shopOrderConfirmations/operationDescriptions?operations=' +
               sActivities;
 
-            this.ajaxGetRequest(
+            that.ajaxGetRequest(
               sUrl,
               null,
               function(oResponse) {
-                if (oResponse) {
-                  aData.forEach(function(t) {
-                    const e = oResponse.findIndex(function(e) {
-                      return e.operation == t.operationActivity;
-                    });
-                    t.description = oResponse[e] && oResponse[e].description;
+                aData.forEach(function(t) {
+                  const e = oResponse.findIndex(function(e) {
+                    return e.operation == t.operationActivity;
                   });
-                  oModel.setData(aData);
-                  // this.byId('activityConfirmationSearch').fireLiveChange();
-                  // this.setTableGrowingTrigger(this.byId('idConfirmationsTable'), 'activityConfirmationItems', iTotalElements);
-                }
-              }.bind(this),
-              this._requestFailure.bind(this)
+                  t.description = oResponse[e] && oResponse[e].description;
+                });
+                // oModel.setData(aData);
+                resolve(aData);
+              },
+              function() {
+                that._requestFailure(...arguments);
+                reject();
+              }
             );
-          } else {
-            oModel.setData(aData);
-            // this.byId('activityConfirmationSearch').fireLiveChange();
-            // this.setTableGrowingTrigger(this.byId('activityConfirmationTable'), 'activityConfirmationItems', iTotalElements);
-          }
+          });
         },
 
         getQuantityConfirmationItems: function() {
@@ -317,20 +344,29 @@ sap.ui.define(
             sUrl = sUrl + '&fuzzySearch=' + encodeURIComponent(this.sQuery);
           }
 
-          this.ajaxGetRequest(
-            sUrl,
-            null,
-            this._readQuantityConfirmationItemsSuccess.bind(this),
-            this._requestFailure.bind(this)
+          return new Promise(
+            function(resolve, reject) {
+              this.ajaxGetRequest(
+                sUrl,
+                null,
+                function() {
+                  this._readQuantityConfirmationItemsSuccess(...arguments);
+                  resolve();
+                }.bind(this),
+                function() {
+                  this._requestFailure(...arguments);
+                  reject();
+                }.bind(this)
+              );
+            }.bind(this)
           );
         },
 
         _readQuantityConfirmationItemsSuccess: function(oResponse) {
           if (oResponse) {
-            this.getView().getModel('data').setProperty(
-              '/quantityConfirmationTitle',
-              this.getI18nText('postingTitle', [oResponse.totalElements])
-            );
+            this.getView()
+              .getModel('data')
+              .setProperty('/quantityConfirmationTitle', this.getI18nText('postingTitle', [oResponse.totalElements]));
 
             const oQtyConfModel = this.getView().getModel('quantityConfirmationItems');
 

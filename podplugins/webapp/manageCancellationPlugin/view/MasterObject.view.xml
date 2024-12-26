@@ -9,7 +9,7 @@
         <uxap:headerTitle>
             <uxap:ObjectPageDynamicHeaderTitle >
                 <uxap:actions>
-                    <Button id="headerRefresh" text="Refresh"/>
+                    <Button id="headerRefresh" text="Refresh" press='.onRefreshBtnPress'/>
                 </uxap:actions> 
             </uxap:ObjectPageDynamicHeaderTitle>
         </uxap:headerTitle>
