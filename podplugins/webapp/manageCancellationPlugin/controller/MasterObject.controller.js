@@ -119,6 +119,7 @@ sap.ui.define(
 
           oView.setModel(new JSONModel([]), 'activityConfirmationItems');
           oView.setModel(new JSONModel([]), 'quantityConfirmationItems');
+          oView.setModel(new JSONModel([]), 'confirmationItems');
           oView.setModel(new JSONModel(), 'viewModel');
 
           this.getOwnerComponent().getTargets().getTarget('OrderDetail').attachDisplay(this.onRouteMatched, this);
@@ -199,8 +200,33 @@ sap.ui.define(
 
           Promise.all(aPromises).then(
             function() {
-              console.log(this.getView().getModel('quantityConfirmationItems').getData());
-              console.log(this.getView().getModel('activityConfirmationItems').getData());
+              var oView = this.getView(),
+                oQtyConfModel = oView.getModel('quantityConfirmationItems'),
+                aQtyConfData = oQtyConfModel.getData(),
+                oActConfModel = oView.getModel('activityConfirmationItems'),
+                aActConfData = oActConfModel.getData();
+
+              var aConfData = [];
+              aConfData = aConfData.concat(aQtyConfData);
+
+              for (var i = 0; i < aActConfData.length; i++) {
+                aConfData.push({
+                  operationActivity: aActConfData[i].operationActivity,
+                  operationActivityDescription: aActConfData[i].description,
+                  confirmationGroup: aActConfData[i].confirmationGroup,
+                  confirmationCounter: aActConfData[i].confirmationCounter,
+                  parameters: aActConfData[i].parameters,
+                  postedBy: aActConfData[i].postedBy,
+                  createdOn: aActConfData[i].createdOn,
+                  cancellationReason: aActConfData[i].cancelReason,
+                  status: aActConfData[i].status,
+                  isActivityConfirmation: true
+                });
+              }
+
+              console.log(aConfData);
+              var oConfModel = this.getView().getModel('confirmationItems');
+              oConfModel.setData(aConfData);
             }.bind(this)
           );
         },

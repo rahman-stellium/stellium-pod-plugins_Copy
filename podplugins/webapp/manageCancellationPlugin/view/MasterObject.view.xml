@@ -19,7 +19,7 @@
         <uxap:sections>
             <uxap:ObjectPageSection titleUppercase="false">
                 <uxap:ObjectPageSubSection titleUppercase="false" title="Confirmations">
-                    <Table id="idConfirmationsTable" items="{activityConfirmationItems>/}">
+                    <Table id="idConfirmationsTable" items="{confirmationItems>/}">
                         <columns>
                             <Column width='10%'>
                                 <Text text="Operation / Description" />
@@ -52,9 +52,6 @@
                                 <Text text="Order"/> 
                             </Column>
                             <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
-                                <Text text="{activityConfirmationItemsoperationActivity}"/> 
-                            </Column>
-                            <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
                                 <Text text="Yield Quantity" />
                             </Column>
                             <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
@@ -77,39 +74,38 @@
                             <ColumnListItem>
                                 <cells>
                                     <ObjectIdentifier 
-                                        title="{activityConfirmationItems>operationActivity}"
-                                        text="{activityConfirmationItems>description}" />
-                                    <Text text="{activityConfirmationItems>confirmationGroup}" />
-                                    <Text text="{activityConfirmationItems>confirmationCounter}" />
-                                    <VBox items="{activityConfirmationItems>parameters}">
+                                        title="{confirmationItems>operationActivity}"
+                                        text="{confirmationItems>operationActivityDescription}" />
+                                    <Text text="{confirmationItems>confirmationGroup}" />
+                                    <Text text="{confirmationItems>confirmationCounter}" />
+                                    <VBox items="{confirmationItems>parameters}">
                                         <HBox >
-                                            <Label text="{activityConfirmationItems>standardValue}: "/>
-                                            <Text text="{activityConfirmationItems>targetQuantity} {activityConfirmationItems>targetUOM}"/>
+                                            <Label text="{confirmationItems>standardValue}: "/>
+                                            <Text text="{confirmationItems>targetQuantity} {confirmationItems>targetUOM}"/>
                                         </HBox>
                                     </VBox>
-                                    <VBox items="{activityConfirmationItems>parameters}">
+                                    <VBox items="{confirmationItems>parameters}">
                                         <HBox >
-                                            <Label text="{activityConfirmationItems>standardValue}: "/>
-                                            <Text text="{activityConfirmationItems>inputValue} {activityConfirmationItems>inputUom}"/>
+                                            <Label text="{confirmationItems>standardValue}: "/>
+                                            <Text text="{confirmationItems>inputValue} {confirmationItems>inputUom}"/>
                                         </HBox>
                                     </VBox>
-                                    <Text text="{activityConfirmationItems>postedBy}"/>
+                                    <Text text="{confirmationItems>postedBy}"/>
                                     <Text text="{
-                                        path: 'activityConfirmationItems>createdOn', 
+                                        path: 'confirmationItems>createdOn', 
                                         formatter: '.formatter.formatSingleDate'
                                     }" />
-                                    <Text text="{activityConfirmationItems>cancelReason}" />
+                                    <Text text="{confirmationItems>cancelReason}" />
                                     <Text text="{
-                                        path: 'activityConfirmationItems>status', 
+                                        path: 'confirmationItems>status', 
                                         formatter: '.formatter.formatExecutionStatus'
                                     }" />
-                                    <Text text="{activityConfirmationItemsshopOrder}"/>
-                                    <Text text="{= ${activityConfirmationItems>yieldQuantity/value} + ' ' + ${activityConfirmationItems>yieldQuantity/unitOfMeasure/uom}}"/>
-                                    <Text text="{= ${activityConfirmationItems>scrapQuantity/value} + ' ' + ${activityConfirmationItems>scrapQuantity/unitOfMeasure/uom}}"/>
-                                    <Text text="{= ${activityConfirmationItems>reasonCode} + ' ' + ${activityConfirmationItem>sreasonCodeDescription}}" />
-                                    <Text text="{activityConfirmationItems>workCenter}" />
-                                    <Text text="{activityConfirmationItems>resource}" />
-                                    <Text text="{activityConfirmationItems>resource}" />
+                                    <Text text="{confirmationItems>shopOrder}"/>
+                                    <Text text="{confirmationItems>yieldQuantity/value} {confirmationItems>yieldQuantity/unitOfMeasure/uom}"/>
+                                    <Text text="{confirmationItems>scrapQuantity/value} {confirmationItems>scrapQuantity/unitOfMeasure/uom}"/>
+                                    <Text text="{confirmationItems>reasonCode} / {activityConfirmationItem>reasonCodeDescription}" />
+                                    <Text text="{confirmationItems>workCenter}" />
+                                    <Text text="{confirmationItems>resource}" />
                                     <Button text="Cancel" press="onCancelPress" />
                                 </cells>
                             </ColumnListItem>
