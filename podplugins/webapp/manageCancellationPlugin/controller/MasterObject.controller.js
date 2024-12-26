@@ -199,6 +199,7 @@ sap.ui.define(
             function(oResponse) {
               this.getView().getModel('viewModel').setProperty('/order', oResponse);
               this.getActivityConfirmationItems();
+              this.getQuantityConfirmationItems();
             }.bind(this),
             this._requestFailure.bind(this)
           );
@@ -242,10 +243,9 @@ sap.ui.define(
 
         _readConfirmationItemsSuccess: function(oResponse) {
           if (oResponse) {
-            this.getView().getModel('data').setProperty(
-              '/postingTitle',
-              this.getI18nText('postingTitle', [oResponse.totalElements])
-            );
+            this.getView()
+              .getModel('data')
+              .setProperty('/postingTitle', this.getI18nText('postingTitle', [oResponse.totalElements]));
             const oActConfItemsModel = this.getView().getModel('activityConfirmationItems');
             let aData = [];
             if (this.activityConfirmationPageNo === 0) {
@@ -297,6 +297,61 @@ sap.ui.define(
             // this.byId('activityConfirmationSearch').fireLiveChange();
             // this.setTableGrowingTrigger(this.byId('activityConfirmationTable'), 'activityConfirmationItems', iTotalElements);
           }
+        },
+
+        getQuantityConfirmationItems: function() {
+          if (this.quantityConfirmationPageNo === 0) {
+            this.byId('idConfirmationsTable').setBusyIndicatorDelay(0);
+            this.byId('idConfirmationsTable').setBusy(true);
+          }
+
+          let sUrl =
+            this.getSfcExecutionDataSourceUri() +
+            'quantityConfirmation/detailsForCancellation?sfc=' +
+            this.oQuery.sfc +
+            '&page=' +
+            this.quantityConfirmationPageNo +
+            '&size=20';
+
+          if (this.sQuery) {
+            sUrl = sUrl + '&fuzzySearch=' + encodeURIComponent(this.sQuery);
+          }
+
+          this.ajaxGetRequest(
+            sUrl,
+            null,
+            this._readQuantityConfirmationItemsSuccess.bind(this),
+            this._requestFailure.bind(this)
+          );
+        },
+
+        _readQuantityConfirmationItemsSuccess: function(oResponse) {
+          if (oResponse) {
+            this.getView().getModel('data').setProperty(
+              '/quantityConfirmationTitle',
+              this.getI18nText('postingTitle', [oResponse.totalElements])
+            );
+
+            const oQtyConfModel = this.getView().getModel('quantityConfirmationItems');
+
+            if (this.quantityConfirmationPageNo === 0) {
+              oQtyConfModel.setData(oResponse.content);
+            } else {
+              oQtyConfModel.setData(oQtyConfModel.getData().concat(oResponse.content));
+            }
+
+            this.cancel = false;
+            this.quantityConfirmationPageNo++;
+
+            // this.setTableGrowingTrigger(
+            //   this.byId('quantityConfirmationTable'),
+            //   'quantityConfirmationItems',
+            //   oResponse.totalElements
+            // );
+          }
+
+          this.byId('idConfirmationsTable').setBusy(false);
+          this.byId('headerRefresh').setEnabled(true);
         },
 
         cancalletionAuthorizationCheck: function() {
