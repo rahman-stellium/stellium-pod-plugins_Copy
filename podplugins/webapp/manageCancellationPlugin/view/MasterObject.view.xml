@@ -1,0 +1,222 @@
+<mvc:View id="idMasterObjectView"
+    controllerName="stellium.ext.podplugins.manageCancellationPlugin.controller.MasterObject" 
+    xmlns:mvc="sap.ui.core.mvc" 
+    xmlns:uxap="sap.uxap"
+    xmlns="sap.m"
+    width="100%" 
+    height="100%">
+    <uxap:ObjectPageLayout id="idMasterObjectPage" upperCaseAnchorBar="false" useIconTabBar="true">
+        <uxap:headerTitle>
+            <uxap:ObjectPageDynamicHeaderTitle >
+                <uxap:actions>
+                    <Button id="headerRefresh" text="Refresh"/>
+                </uxap:actions> 
+            </uxap:ObjectPageDynamicHeaderTitle>
+        </uxap:headerTitle>
+        <uxap:headerContent>
+			<ObjectAttribute title="" text="This example explains the rules for the rendering of sections"/>
+		</uxap:headerContent>
+        <uxap:sections>
+            <uxap:ObjectPageSection titleUppercase="false">
+                <uxap:ObjectPageSubSection titleUppercase="false" title="Confirmations">
+                    <Table id="idConfirmationsTable" items="{activityConfirmationItems>/}">
+                        <columns>
+                            <Column width='10%'>
+                                <Text text="Operation / Description" />
+                            </Column>
+                            <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
+                                <Text text="Confirmation Group" />
+                            </Column>
+                            <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
+                                <Text text="Confirmation Counter" />
+                            </Column>
+                            <Column width='15%' minScreenWidth="Desktop" demandPopin="true">
+                                <Text text="Standard Value Targets" />
+                            </Column>
+                            <Column  width='15%' minScreenWidth="Desktop" demandPopin="true">
+                                <Text text="Standard Value Posted" />
+                            </Column>
+                            <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
+                                <Text text="Posted By" width="auto" />
+                            </Column>
+                            <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
+                                <Text text="Created On" />
+                            </Column>
+                            <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
+                                <Text text="Cancellation Reason" />
+                            </Column>
+                            <Column width="7%">
+                                <Text text="Status" />
+                            </Column>
+                            <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
+                                <Text text="Order"/> 
+                            </Column>
+                            <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
+                                <Text text="{activityConfirmationItemsoperationActivity}"/> 
+                            </Column>
+                            <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
+                                <Text text="Yield Quantity" />
+                            </Column>
+                            <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
+                                <Text text="Scrap Quantity" />
+                            </Column>
+                            <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
+                                <Text text="Reason Code / Description" />
+                            </Column>
+                            <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
+                                <Text text="Work Center" /> 
+                            </Column>
+                            <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
+                                <Text text="Resource"/> 
+                            </Column>
+                            <Column width='10%'>
+                                <Text text="Actions"/>
+                            </Column>
+                        </columns>
+                        <items>
+                            <ColumnListItem>
+                                <cells>
+                                    <ObjectIdentifier 
+                                        title="{activityConfirmationItems>operationActivity}"
+                                        text="{activityConfirmationItems>description}" />
+                                    <Text text="{activityConfirmationItems>confirmationGroup}" />
+                                    <Text text="{activityConfirmationItems>confirmationCounter}" />
+                                    <VBox items="{activityConfirmationItems>parameters}">
+                                        <HBox >
+                                            <Label text="{activityConfirmationItems>standardValue}: "/>
+                                            <Text text="{activityConfirmationItems>targetQuantity} {activityConfirmationItems>targetUOM}"/>
+                                        </HBox>
+                                    </VBox>
+                                    <VBox items="{activityConfirmationItems>parameters}">
+                                        <HBox >
+                                            <Label text="{activityConfirmationItems>standardValue}: "/>
+                                            <Text text="{activityConfirmationItems>inputValue} {activityConfirmationItems>inputUom}"/>
+                                        </HBox>
+                                    </VBox>
+                                    <Text text="{activityConfirmationItems>postedBy}"/>
+                                    <Text text="{
+                                        path: 'activityConfirmationItems>createdOn', 
+                                        formatter: '.formatter.formatSingleDate'
+                                    }" />
+                                    <Text text="{activityConfirmationItems>cancelReason}" />
+                                    <Text text="{
+                                        path: 'activityConfirmationItems>status', 
+                                        formatter: '.formatter.formatExecutionStatus'
+                                    }" />
+                                    <Text text="{activityConfirmationItemsshopOrder}"/>
+                                    <Text text="{= ${activityConfirmationItems>yieldQuantity/value} + ' ' + ${activityConfirmationItems>yieldQuantity/unitOfMeasure/uom}}"/>
+                                    <Text text="{= ${activityConfirmationItems>scrapQuantity/value} + ' ' + ${activityConfirmationItems>scrapQuantity/unitOfMeasure/uom}}"/>
+                                    <Text text="{= ${activityConfirmationItems>reasonCode} + ' ' + ${activityConfirmationItem>sreasonCodeDescription}}" />
+                                    <Text text="{activityConfirmationItems>workCenter}" />
+                                    <Text text="{activityConfirmationItems>resource}" />
+                                    <Text text="{activityConfirmationItems>resource}" />
+                                    <Button text="Cancel" press="onCancelPress" />
+                                </cells>
+                            </ColumnListItem>
+                        </items>
+                    </Table>
+                </uxap:ObjectPageSubSection>
+            </uxap:ObjectPageSection>
+            <uxap:ObjectPageSection titleUppercase="false">
+                <uxap:ObjectPageSubSection titleUppercase="false" title="Goods Issue">
+                    <Table id="goodsIssueTable">
+                        <columns>
+                            <Column><Text text="Inventory ID"/></Column>
+                            <Column><Text text="Batch ID"/></Column>
+                            <Column><Text text="HU Number"/></Column>
+                            <Column><Text text="Warehouse Number"/></Column>
+                            <Column><Text text="Status"/></Column>
+                            <Column><Text text="Actions"/></Column>
+                        </columns>
+                        <items>
+                            <ColumnListItem >
+                                <Text text="testItem"/>
+                                <Text text="testItem"/>
+                                <Text text="testItem"/>
+                                <Text text="testItem"/>
+                                <Text text="testItem"/>
+                                <Button text="Cancel"/>
+                            </ColumnListItem>
+                        </items>
+                    </Table>
+                </uxap:ObjectPageSubSection>
+            </uxap:ObjectPageSection>
+            <uxap:ObjectPageSection titleUppercase="false" title='Goods Receipt'>
+                <uxap:subSections>
+                    <uxap:ObjectPageSubSection titleUppercase="false" title="Finished Goods">
+                        <uxap:blocks>
+                            <Table id="goodsReceiptFinishGoodTable">
+                                <columns>
+                                    <Column><Text text="Inventory ID"/></Column>
+                                    <Column><Text text="Batch ID"/></Column>
+                                    <Column><Text text="HU Number"/></Column>
+                                    <Column><Text text="Warehouse Number"/></Column>
+                                    <Column><Text text="Status"/></Column>
+                                    <Column><Text text="Actions"/></Column>
+                                </columns>
+                                <items>
+                                    <ColumnListItem >
+                                        <Text text="testItem"/>
+                                        <Text text="testItem"/>
+                                        <Text text="testItem"/>
+                                        <Text text="testItem"/>
+                                        <Text text="testItem"/>
+                                        <Button text="Cancel"/>
+                                    </ColumnListItem>
+                                </items>
+                            </Table>
+                        </uxap:blocks>
+                    </uxap:ObjectPageSubSection>
+                    <uxap:ObjectPageSubSection titleUppercase="false" title="By-Products">
+                        <uxap:blocks>
+                            <Table id="goodsReceiptByProductTable">
+                                <columns>
+                                    <Column><Text text="Inventory ID"/></Column>
+                                    <Column><Text text="Batch ID"/></Column>
+                                    <Column><Text text="HU Number"/></Column>
+                                    <Column><Text text="Warehouse Number"/></Column>
+                                    <Column><Text text="Status"/></Column>
+                                    <Column><Text text="Actions"/></Column>
+                                </columns>
+                                <items>
+                                    <ColumnListItem >
+                                        <Text text="testItem"/>
+                                        <Text text="testItem"/>
+                                        <Text text="testItem"/>
+                                        <Text text="testItem"/>
+                                        <Text text="testItem"/>
+                                        <Button text="Cancel"/>
+                                    </ColumnListItem>
+                                </items>
+                            </Table>
+                        </uxap:blocks>
+                    </uxap:ObjectPageSubSection>
+                    <uxap:ObjectPageSubSection titleUppercase="false" title="Co-Products">
+                        <uxap:blocks>
+                            <Table id="goodsReceiptCoProductTable">
+                                <columns>
+                                    <Column><Text text="Inventory ID"/></Column>
+                                    <Column><Text text="Batch ID"/></Column>
+                                    <Column><Text text="HU Number"/></Column>
+                                    <Column><Text text="Warehouse Number"/></Column>
+                                    <Column><Text text="Status"/></Column>
+                                    <Column><Text text="Actions"/></Column>
+                                </columns>
+                                <items>
+                                    <ColumnListItem >
+                                        <Text text="testItem"/>
+                                        <Text text="testItem"/>
+                                        <Text text="testItem"/>
+                                        <Text text="testItem"/>
+                                        <Text text="testItem"/>
+                                        <Button text="Cancel"/>
+                                    </ColumnListItem>
+                                </items>
+                            </Table>
+                        </uxap:blocks>
+                    </uxap:ObjectPageSubSection>
+                </uxap:subSections>
+            </uxap:ObjectPageSection>
+        </uxap:sections>
+    </uxap:ObjectPageLayout>
+</mvc:View> 

@@ -34,7 +34,7 @@
         "routerClass": "sap.m.routing.Targets",
         "viewType": "XML",
         "viewPath": "stellium.ext.podplugins.manageCancellationPlugin.view",
-        "controlId": "idMainView",
+        "controlId": "idPage",
         "controlAggregation": "content",
         "async": true
       },
@@ -43,7 +43,7 @@
           "viewName": "PluginView"
         },
         "OrderDetail": {
-          "viewName": "PackingUnitDetails"
+          "viewName": "MasterObject"
         }
       }
     }

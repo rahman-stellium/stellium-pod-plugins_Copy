@@ -88,16 +88,23 @@ sap.ui.define(
 
           // Set refresh flag
           this.refresh = true;
-
-          // Attach route matched handler
-          // this.getOwnerComponent().getRouter().getRoute('masterList').attachPatternMatched(this.onRouteMatched, this);
-          this.getOwnerComponent().getTargets().getTarget('MasterList').attachDisplay(this.onRouteMatched, this);
         },
 
         /**
          * @see PluginViewController.onBeforeRenderingPlugin()
          */
-        onBeforeRenderingPlugin: function() {},
+        onBeforeRenderingPlugin: function() {
+          // Add a validator to the 'sfcFilter' control
+          this.byId('idSFCFilterInput').addValidator(function(input) {
+            return new Token({
+              key: input.text,
+              text: input.text
+            });
+          });
+
+          // Store the route arguments
+          this.onOrdersSearch(false);
+        },
 
         onExit: function() {
           PluginViewController.prototype.onExit.apply(this, arguments);
@@ -215,6 +222,25 @@ sap.ui.define(
             this.page++;
             this.onOrdersSearch();
           }
+        },
+
+        onListItemPress: function(oEvent) {
+          const sPath = oEvent.getSource().getBindingContextPath();
+          const oShopOrder = this.getView().getModel('masterList').getProperty(sPath);
+
+          this.getOwnerComponent().displayTarget('OrderDetail', {
+            '?query': {
+              sfcRef: oShopOrder.sfcRef,
+              sfc: oShopOrder.sfcIdentifier,
+              shopOrder: oShopOrder.shopOrder.shopOrder,
+              material: oShopOrder.shopOrder.actualMaterial && encodeURIComponent(oShopOrder.shopOrder.actualMaterial.name),
+              materialVersion: oShopOrder.shopOrder.actualMaterial && oShopOrder.shopOrder.actualMaterial.version,
+              materialDescription:
+                oShopOrder.shopOrder.actualMaterial && encodeURIComponent(oShopOrder.shopOrder.actualMaterial.defaultDescription),
+              plannedBatch: oShopOrder.shopOrder.batchNumber || '',
+              executionStatus: oShopOrder.shopOrder.executionStatus
+            }
+          });
         },
 
         _getFilters: function() {

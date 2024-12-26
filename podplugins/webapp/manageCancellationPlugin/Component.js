@@ -14,7 +14,7 @@ sap.ui.define(['sap/dm/dme/podfoundation/component/production/ProductionUICompon
     },
 
     clearTarget: function() {
-      this.getRootControl().byId('idMainView').removeAllContent();
+      this.getRootControl().byId('idPage').removeAllContent();
     }
   });
 
