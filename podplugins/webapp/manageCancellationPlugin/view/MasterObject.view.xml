@@ -19,7 +19,20 @@
         <uxap:sections>
             <uxap:ObjectPageSection titleUppercase="false">
                 <uxap:ObjectPageSubSection titleUppercase="false" title="Confirmations">
-                    <Table id="idConfirmationsTable" items="{confirmationItems>/}">
+                    <Table id="idConfirmationsTable" 
+                        items="{
+                            path: 'confirmationItems>/',
+                            sorter: [{
+                                path: 'operationActivity', 
+                                descending: false
+                            }, {
+                                path: 'confirmationGroup', 
+                                descending: false
+                            }, {
+                                path: 'confirmationCounter', 
+                                descending: false
+                            }]
+                        }">
                         <columns>
                             <Column width='10%'>
                                 <Text text="Operation / Description" />
@@ -95,7 +108,7 @@
                                         path: 'confirmationItems>createdOn', 
                                         formatter: '.formatter.formatSingleDate'
                                     }" />
-                                    <Text text="{confirmationItems>cancelReason}" />
+                                    <Text text="{confirmationItems>cancellationReason}" />
                                     <Text text="{
                                         path: 'confirmationItems>status', 
                                         formatter: '.formatter.formatExecutionStatus'
@@ -106,7 +119,7 @@
                                     <Text text="{confirmationItems>reasonCode} / {activityConfirmationItem>reasonCodeDescription}" />
                                     <Text text="{confirmationItems>workCenter}" />
                                     <Text text="{confirmationItems>resource}" />
-                                    <Button text="Cancel" press="onCancelPress" />
+                                    <Button text="Cancel" press=".onCancelConfirmationPress" />
                                 </cells>
                             </ColumnListItem>
                         </items>

@@ -5,9 +5,34 @@ sap.ui.define(
     'sap/dm/dme/util/PlantSettings',
     'sap/base/Log',
     'sap/m/TablePersoController',
+    'sap/m/MessageBox',
+    'sap/m/MessageToast',
+    'sap/m/TextArea',
+    'sap/m/Dialog',
+    'sap/m/DialogType',
+    'sap/m/Label',
+    'sap/m/Button',
+    'sap/m/ButtonType',
+    'sap/ui/core/Fragment',
     '../util/formatter'
   ],
-  function(JSONModel, PluginViewController, PlantSettings, Log, TablePersoController, Formatter) {
+  function(
+    JSONModel,
+    PluginViewController,
+    PlantSettings,
+    Log,
+    TablePersoController,
+    MessageBox,
+    MessageToast,
+    TextArea,
+    Dialog,
+    DialogType,
+    Label,
+    Button,
+    ButtonType,
+    Fragment,
+    Formatter
+  ) {
     'use strict';
 
     var oLogger = Log.getLogger('resourceListPlugin', Log.Level.INFO);
@@ -120,6 +145,7 @@ sap.ui.define(
           oView.setModel(new JSONModel([]), 'activityConfirmationItems');
           oView.setModel(new JSONModel([]), 'quantityConfirmationItems');
           oView.setModel(new JSONModel([]), 'confirmationItems');
+          oView.setModel(new JSONModel([]), 'cancellationItems');
           oView.setModel(new JSONModel(), 'viewModel');
 
           this.getOwnerComponent().getTargets().getTarget('OrderDetail').attachDisplay(this.onRouteMatched, this);
@@ -190,10 +216,255 @@ sap.ui.define(
         },
 
         onRefreshBtnPress: function() {
-          this.getConfirmationData();
+          //TODO: Get object page section that triggered the call
+          this.getActQtyConfirmationData();
         },
 
-        getConfirmationData: function() {
+        onCancelConfirmationPress: function(oEvent) {
+          var oView = this.getView(),
+            oConfirmation = oEvent.getSource().getBindingContext('confirmationItems').getObject(),
+            oCancellationModel = oView.getModel('cancellationItems');
+
+          //Get the associated confirmation item
+          var oAssocConfirmation = this.getAssocConfirmation(
+            oConfirmation.confirmationGroup,
+            oConfirmation.confirmationCounter,
+            oConfirmation.createdOn
+          );
+
+          //Create the cancellation dialog data
+          var aCancellationData = [oConfirmation];
+          if (oAssocConfirmation) {
+            aCancellationData.push(oAssocConfirmation);
+          }
+          oCancellationModel.setData(aCancellationData);
+
+          //Show the cancellation dialog
+          this.showCancellationDialog();
+        },
+
+        /**
+         * Gets the associated confirmation item based on the following conditions
+         *    Confirmation group matches
+         *    Confirmation counter is one away from the current confirmation
+         *    Confirmation created datetime is within 30 seconds of eachother
+         * @param {string} sConfGrp Confirmation Group for the confirmation item
+         * @param {string} sConfCtr Confirmation Counter for the confirmation item
+         * @param {Date} sCreatedOn Confirmation created date
+         * @returns {object}
+         */
+        getAssocConfirmation: function(sConfGrp, sConfCtr, sCreatedOn) {
+          var oView = this.getView(),
+            aConfItems = oView.getModel('confirmationItems').getData();
+          var oItem = aConfItems.find(item => {
+            //Check for confirmation group match
+            if (item.confirmationGroup !== sConfGrp) {
+              return false;
+            }
+
+            //Associated confirmation counter will be 1 away from current confirmation
+            var bFlag = false;
+            if (+item.confirmationCounter === +sConfCtr + 1 || +item.confirmationCounter === +sConfCtr - 1) {
+              bFlag = true;
+            }
+            if (!bFlag) {
+              return false;
+            }
+
+            //Check if confirmation created on is within 30 seconds of eachother
+            var oDate1 = moment(item.createdOn),
+              oDate2 = moment(sCreatedOn);
+            if (Math.abs(oDate1.diff(oDate2)) > 30 * 1000) {
+              return false;
+            }
+
+            // return bFlag && item.confirmationGroup === sConfGrp && item.createdOn === sCreatedOn;
+            return true;
+          });
+
+          return oItem;
+        },
+
+        /**
+         * Show cancellation dialog
+         * Show dialog if exists. Else create the dialog and show
+         */
+        showCancellationDialog: function() {
+          var oView = this.getView(),
+            oConfirmCancellationDialog = oView.byId('idConfirmCancellationDialog');
+
+          if (oConfirmCancellationDialog) {
+            oConfirmCancellationDialog.open();
+            return;
+          }
+
+          Fragment.load({
+            id: oView.getId(),
+            name: 'stellium.ext.podplugins.manageCancellationPlugin.view.fragments.CancellationDialog',
+            controller: this
+          }).then(function(oDialog) {
+            //Handle dialog close function on escape button press
+            oDialog.setEscapeHandler(function(oPromise) {
+              that.onConfirmCancellationBtnPress();
+              oPromise.resolve();
+            });
+
+            //Add the dialog to the view
+            oView.addDependent(oDialog);
+
+            //Show the dialog
+            oDialog.open();
+          });
+        },
+
+        onConfirmCancellationBtnPress: function() {
+          this.onSubmitDialogPress();
+        },
+
+        /**
+         * Handle cancel button press event in the dialog
+         *  Close the dialog
+         *  Clear the model
+         * @returns {undefined}
+         */
+        onCancelCancellationBtnPress: function() {
+          var oView = this.getView(),
+            oConfirmCancellationDialog = oView.byId('idConfirmCancellationDialog');
+
+          //If dialog does not exist, do nothing
+          if (!oConfirmCancellationDialog) {
+            return;
+          }
+
+          //Close the dialog
+          oConfirmCancellationDialog.close();
+        },
+
+        onCancelConfirmationDialogAfterClose: function(oEvent) {
+          var oView = this.getView(),
+            oCancellationModel = oView.getModel('cancellationItems');
+          oCancellationModel.setData([]);
+          oCancellationModel.refresh(true);
+        },
+
+        /**
+         * Returns an object containing payloads for activity and quantity cancellations.
+         *
+         * @param {string} sCancelationText - The payload for activity confirmation cancellation.
+         *
+         * @returns {Object} An object containing the activity and quantity cancellation payloads.
+         * @returns {Object} return.activityCancellation - The payload for activity confirmation cancellation.
+         * @returns {Object} return.quantityCancellation - The payload for quantity confirmation cancellation.
+         */
+        createActQtyCancellationPayloads: function(sCancelationText) {
+          var oView = this.getView(),
+            oCancellationModel = oView.getModel('cancellationItems'),
+            aCancellationData = oCancellationModel.getData(),
+            oCancelActConfPayload = {},
+            oCancelQtyConfPayload = {};
+
+          for (var i = 0; i < aCancellationData.length; i++) {
+            var oItem = aCancellationData[i];
+            if (oItem.isActivityConfirmation) {
+              oCancelActConfPayload = {
+                shopOrder: this.oQuery.shopOrder,
+                confirmationText: sCancelationText,
+                confirmationGroup: oItem.confirmationGroup,
+                txnId: oItem.transactionId,
+                confirmationCounter: oItem.confirmationCounter
+              };
+            } else {
+              oCancelQtyConfPayload = {
+                transactionId: oItem.transactionId,
+                shopOrder: oItem.shopOrder,
+                cancellationReason: sCancelationText,
+                sfc: oItem.sfc
+              };
+            }
+          }
+          return {
+            activityCancellation: oCancelActConfPayload,
+            quantityCancellation: oCancelQtyConfPayload
+          };
+        },
+
+        onSubmitDialogPress: function() {
+          let that = this;
+
+          const oTextArea = new TextArea({
+            width: '100%',
+            liveChange: function(oEvent) {
+              that.getView().getModel('cancelReason').setProperty('/value', oEvent.mParameters.value);
+            },
+            rows: 4,
+            maxLength: 40,
+            placeholder: this.getI18nText('cancel.confirmation.placeholder')
+          });
+
+          if (!this.oSubmitDialog) {
+            this.oSubmitDialog = new Dialog({
+              type: DialogType.Message,
+              icon: 'sap-icon://SAP-icons-TNT/exceptions',
+              state: 'Warning',
+              title: this.getI18nText('cancel.confirmation.title'),
+              content: [
+                new Label({
+                  text: this.getI18nText('cancel.confirmation.content')
+                }),
+                oTextArea
+              ],
+              beginButton: new Button({
+                type: ButtonType.Emphasized,
+                text: this.getI18nText('ok'),
+                press: function() {
+                  //TODO: Handle cancel of other confirmations
+                  // const oCancelObject = this.object.getBindingContext(this.type).getObject();
+                  // const sCancelationText = that.getModel('cancelReason').getProperty('/value');
+
+                  // if (this.type === 'activityConfirmationItems') {
+                  //   this.cancelActivityConfirmationItem(t, sCancelationText);
+                  // } else if (this.type === 'quantityConfirmationItems') {
+                  //   this.cancelQuantityConfirmationItem(t, sCancelationText);
+                  // } else {
+                  //   this.cancelGIGR(t, sCancelationText);
+                  // }
+                  const sCancelationText = this.getView().getModel('cancelReason').getProperty('/value');
+                  var oPayloads = this.createActQtyCancellationPayloads(sCancelationText),
+                    aPromises = [];
+
+                  if (Object.keys(oPayloads.activityCancellation).length > 0) {
+                    aPromises.push(this.cancelActivityConfirmationItem(oPayloads.activityCancellation));
+                  }
+
+                  if (Object.keys(oPayloads.quantityCancellation).length > 0) {
+                    aPromises.push(this.cancelQuantityConfirmationItem(oPayloads.quantityCancellation));
+                  }
+
+                  Promise.allSettled(aPromises).then(function() {
+                    console.log('All cancellations posted', ...arguments);
+                    //TODO: Handle confirmation statuses
+                    that.getActQtyConfirmationData();
+                  });
+
+                  this.oSubmitDialog.close();
+                  oTextArea.setValue('');
+                }.bind(this)
+              }),
+              endButton: new Button({
+                text: this.getI18nText('cancel'),
+                press: function() {
+                  this.getView().getModel('cancelReason').setProperty('/value', '');
+                  oTextArea.setValue('');
+                  this.oSubmitDialog.close();
+                }.bind(this)
+              })
+            });
+          }
+
+          this.oSubmitDialog.open();
+        },
+
+        getActQtyConfirmationData: function() {
           var aPromises = [];
           aPromises.push(this.getActivityConfirmations());
           aPromises.push(this.getQuantityConfirmationItems());
@@ -220,6 +491,8 @@ sap.ui.define(
                   createdOn: aActConfData[i].createdOn,
                   cancellationReason: aActConfData[i].cancelReason,
                   status: aActConfData[i].status,
+                  shopOrder: this.oQuery.shopOrder,
+                  transactionId: aActConfData[i].transactionId,
                   isActivityConfirmation: true
                 });
               }
@@ -262,7 +535,7 @@ sap.ui.define(
             null,
             function(oResponse) {
               this.getView().getModel('viewModel').setProperty('/order', oResponse);
-              this.getConfirmationData();
+              this.getActQtyConfirmationData();
             }.bind(this),
             this._requestFailure.bind(this)
           );
@@ -429,6 +702,77 @@ sap.ui.define(
               if (i !== 403) {
                 this._requestFailure(t, e);
               }
+            }.bind(this)
+          );
+        },
+
+        /**
+         * Cancels an activity confirmation item by sending a cancellation request to the server.
+         *
+         * @param {Object} oPayload                     - The payload containing details required for cancellation.
+         * @param {string} oPayload.confirmationGroup   - The group identifier of the activity confirmation.
+         * @param {string} oPayload.confirmationCounter - The counter for the confirmation.
+         * @param {string} oPayload.txnId               - The transaction ID of the activity confirmation.
+         * @param {string} oPayload.shopOrder           - The shop order associated with the activity confirmation.
+         * @param {string} oPayload.confirmationText    - The cancel reason of the confirmation to be canceled.
+         *
+         * @returns {Promise} A promise that resolves on successful cancellation or rejects on failure.
+         * @resolves {*} Response data from the server on success.
+         * @rejects {*} Error data from the server on failure.
+         */
+        cancelActivityConfirmationItem: function(oPayload) {
+          this.cancel = true;
+
+          let sUrl = this.getActivityConfirmationRestDataSourceUri() + 'activityconfirmation/cancel';
+          return new Promise(
+            function(resolve, reject) {
+              this.ajaxPostRequest(
+                sUrl,
+                oPayload,
+                function() {
+                  MessageToast.show(this.getI18nText('orderConformationSucess'));
+                  resolve(...arguments);
+                }.bind(this),
+                function() {
+                  this._requestFailure(...arguments);
+                  reject(...arguments);
+                }.bind(this)
+              );
+            }.bind(this)
+          );
+        },
+
+        /**
+         * Cancels a quantity confirmation item by sending a cancellation request to the server.
+         *
+         * @param {Object} oPayload                     - The payload containing details required for cancellation.
+         * @param {string} oPayload.transactionId       - The transaction ID of the quantity confirmation.
+         * @param {string} oPayload.shopOrder           - The shop order associated with the quantity confirmation.
+         * @param {string} oPayload.sfc                 - The shop floor control identifier related to the confirmation.
+         * @param {string} oPayload.cancellationReason  - The reason for the cancellation.
+         *
+         * @returns {Promise} A promise that resolves on successful cancellation or rejects on failure.
+         * @resolves {*} Response data from the server on success.
+         * @rejects {*} Error data from the server on failure.
+         */
+        cancelQuantityConfirmationItem: function(oPayload) {
+          this.cancel = true;
+
+          const sUrl = this.getSfcExecutionDataSourceUri() + 'quantityConfirmation/cancel';
+          return new Promise(
+            function(resolve, reject) {
+              this.ajaxPostRequest(
+                sUrl,
+                oPayload,
+                function() {
+                  MessageToast.show(this.getI18nText('orderConformationSucess'));
+                  resolve(...arguments);
+                }.bind(this),
+                function() {
+                  this._requestFailure(...arguments);
+                  reject(...arguments);
+                }.bind(this)
+              );
             }.bind(this)
           );
         },
