@@ -54,7 +54,12 @@
                 <Text text="{CO_PRODUCT>comments}"/>
                 <Text text="{CO_PRODUCT>cancellationComments}"/>  
                 <ObjectStatus text="{CO_PRODUCT>status}"/>
-                <Button text="Cancel"/>
+                <Button text="Cancel" press="onCancelConfirmationPress">
+                    <customData>
+                        <core:CustomData key="cancelType" value='GR'/>
+                        <core:CustomData key="dataModelName" value='CO_PRODUCT'/>
+                    </customData>
+                </Button>
             </ColumnListItem>
         </items>
     </Table>

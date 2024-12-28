@@ -292,7 +292,7 @@ sap.ui.define(
           }
         },
 
-        onCancelConfirmationPress: function(oEvent) {
+        cancelActQtyConfirmation: function(oEvent) {
           var oView = this.getView(),
             oConfirmation = oEvent.getSource().getBindingContext('confirmationItems').getObject(),
             oCancellationModel = oView.getModel('cancellationItems');
@@ -313,6 +313,22 @@ sap.ui.define(
 
           //Show the cancellation dialog
           this.showCancellationDialog();
+        },
+
+        onCancelConfirmationPress: function(oEvent) {
+          var aCustomData = oEvent.getSource().getCustomData();
+
+          var oCustomData = aCustomData.reduce(function(acc, val) {
+            acc[val.getKey()] = val.getValue();
+            return acc;
+          }, {});
+          
+          if (oCustomData.cancelType === 'ActQtyCombined') {
+            this.cancelActQtyConfirmation(oEvent);
+          } else {
+            var oCancellationItem = oEvent.getSource().getBindingContext(oCustomData.dataModelName).getObject();
+            this.onSubmitDialogPress(oCancellationItem, oCustomData.cancelType, oCustomData.dataModelName);
+          }
         },
 
         /**
@@ -460,7 +476,7 @@ sap.ui.define(
           };
         },
 
-        onSubmitDialogPress: function() {
+        onSubmitDialogPress: function(oCancellationItem, sCancelType, sModelName) {
           let that = this;
 
           const oTextArea = new TextArea({
@@ -489,34 +505,32 @@ sap.ui.define(
                 type: ButtonType.Emphasized,
                 text: this.getI18nText('ok'),
                 press: function() {
-                  //TODO: Handle cancel of other confirmations
-                  // const oCancelObject = this.object.getBindingContext(this.type).getObject();
-                  // const sCancelationText = that.getModel('cancelReason').getProperty('/value');
-
-                  // if (this.type === 'activityConfirmationItems') {
-                  //   this.cancelActivityConfirmationItem(t, sCancelationText);
-                  // } else if (this.type === 'quantityConfirmationItems') {
-                  //   this.cancelQuantityConfirmationItem(t, sCancelationText);
-                  // } else {
-                  //   this.cancelGIGR(t, sCancelationText);
-                  // }
                   const sCancelationText = this.getView().getModel('cancelReason').getProperty('/value');
-                  var oPayloads = this.createActQtyCancellationPayloads(sCancelationText),
-                    aPromises = [];
 
-                  if (Object.keys(oPayloads.activityCancellation).length > 0) {
-                    aPromises.push(this.cancelActivityConfirmationItem(oPayloads.activityCancellation));
+                  switch (sCancelType) {
+                    case 'ActQtyCombined':
+                      var oPayloads = this.createActQtyCancellationPayloads(sCancelationText),
+                        aPromises = [];
+
+                      if (Object.keys(oPayloads.activityCancellation).length > 0) {
+                        aPromises.push(this.cancelActivityConfirmationItem(oPayloads.activityCancellation));
+                      }
+
+                      if (Object.keys(oPayloads.quantityCancellation).length > 0) {
+                        aPromises.push(this.cancelQuantityConfirmationItem(oPayloads.quantityCancellation));
+                      }
+
+                      Promise.allSettled(aPromises).then(function() {
+                        console.log('All cancellations posted', ...arguments);
+                        //TODO: Handle confirmation statuses
+                        that.getActQtyConfirmationData();
+                      });
+                      break;
+
+                    case 'GR':
+                    case 'GI':
+                      this.cancelGIGR(oCancellationItem, sCancelationText);
                   }
-
-                  if (Object.keys(oPayloads.quantityCancellation).length > 0) {
-                    aPromises.push(this.cancelQuantityConfirmationItem(oPayloads.quantityCancellation));
-                  }
-
-                  Promise.allSettled(aPromises).then(function() {
-                    console.log('All cancellations posted', ...arguments);
-                    //TODO: Handle confirmation statuses
-                    that.getActQtyConfirmationData();
-                  });
 
                   this.oSubmitDialog.close();
                   oTextArea.setValue('');
@@ -962,6 +976,35 @@ sap.ui.define(
                 }.bind(this)
               );
             }.bind(this)
+          );
+        },
+
+        cancelGIGR: function(oConfItem, sCancelReason) {
+          // Clear the cancel reason model's value
+          this.getView().getModel('cancelReason').setProperty('/value', '');
+
+          // Construct the URL for the cancellation request
+          const sUrl = this.getInventoryDataSourceUri() + 'postings/cancellations';
+
+          var sModelName = '';
+
+          if (oConfItem)
+            // Prepare the payload for the POST request
+            var oPayload = {
+              txnId: oConfItem.txnId,
+              comments: sCancelReason
+            };
+
+          // Send the POST request using AjaxUtil
+          this.ajaxPostRequest(
+            sUrl, // URL
+            oPayload, // Payload
+            function() {
+              // On success, refresh the detail page and show a success message
+              this.onRefreshBtnPress();
+              MessageToast.show(this.getI18nText('orderConformationSucess'));
+            }.bind(this), // Bind the success callback to the current context
+            this._requestFailure.bind(this) // Bind the failure callback to the current context
           );
         },
 

@@ -155,7 +155,12 @@
                                     <Text text="{confirmationItems>reasonCode} / {activityConfirmationItem>reasonCodeDescription}" />
                                     <Text text="{confirmationItems>workCenter}" />
                                     <Text text="{confirmationItems>resource}" />
-                                    <Button text="Cancel" press=".onCancelConfirmationPress" />
+                                    <Button text="Cancel" press=".onCancelConfirmationPress">
+                                        <customData>
+                                            <core:CustomData key="cancelType" value='ActQtyCombined'/>
+                                            <core:CustomData key="dataModelName" value='FINISH_GOOD'/>
+                                        </customData>
+                                    </Button>
                                 </cells>
                             </ColumnListItem>
                         </items>
