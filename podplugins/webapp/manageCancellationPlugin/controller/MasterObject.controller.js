@@ -216,8 +216,81 @@ sap.ui.define(
         },
 
         onRefreshBtnPress: function() {
-          //TODO: Get object page section that triggered the call
-          this.getActQtyConfirmationData();
+          // Reset query and table models
+          this.sQuery = null;
+          this.resetTableModels();
+
+          // Handle refresh based on the current tab
+          switch (this.currentTab) {
+            case 'actQtyConfirmations':
+              this.activityConfirmationPageNo = 0;
+              // this.sQuery = this.byId('activityConfirmationSearch').getValue();
+              this.getActQtyConfirmationData();
+              break;
+
+            case 'goodsReceipt':
+              this.goodsReceiptPageNo = {
+                FINISH_GOOD: 0,
+                CO_PRODUCT: 0,
+                BY_PRODUCT: 0
+              };
+              //TODO:
+              // this.getGoodsReceiptItems('FINISH_GOOD', true, this.byId('goodsReceiptSearch').getValue());
+              // this.getGoodsReceiptItems('CO_PRODUCT', true, this.byId('goodsReceiptByCoProductSearch').getValue());
+              // this.getGoodsReceiptItems('BY_PRODUCT', true, this.byId('goodsReceiptByProductSearch').getValue());
+              break;
+
+            case 'goodsIssue':
+              this.goodsIssuePageNo = 0;
+              //TODO:
+              // this.sQuery = this.byId('goodsIssueSearch').getValue();
+              // this.getGoodsIssueItems();
+              break;
+          }
+        },
+
+        onNavigate: function(oEvent) {
+          const viewId = this.getView().getId();
+          const selectedSection = oEvent.getSource().getSelectedSection();
+
+          // Reset properties
+          // this.sQuery = null;
+          this.activityConfirmationPageNo = 0;
+          this.quantityConfirmationPageNo = 0;
+          this.goodsIssuePageNo = 0;
+          this.goodsReceiptPageNo = {
+            FINISH_GOOD: 0,
+            CO_PRODUCT: 0,
+            BY_PRODUCT: 0
+          };
+
+          this.resetTableModels();
+          //TODO
+          // this.resetSearchText();
+
+          // Handle navigation
+          switch (selectedSection) {
+            case viewId + '--actQtyConfirmations':
+              this.currentTab = 'actQtyConfirmations';
+              this.getActQtyConfirmationData();
+
+            case viewId + '--goodsReceiptSection':
+              if (this.currentTab === 'goodsReceipt') {
+                return;
+              }
+              this.currentTab = 'goodsReceipt';
+              //TODO
+              // this.getGoodsReceiptItems('FINISH_GOOD');
+              // this.getGoodsReceiptItems('CO_PRODUCT');
+              // this.getGoodsReceiptItems('BY_PRODUCT');
+              break;
+
+            case viewId + '--goodsIssue':
+              this.currentTab = 'goodsIssue';
+              //TODO
+              // this.getGoodsIssueItems();
+              break;
+          }
         },
 
         onCancelConfirmationPress: function(oEvent) {
@@ -775,6 +848,21 @@ sap.ui.define(
               );
             }.bind(this)
           );
+        },
+
+        resetTableModels: function(sModelName) {
+          if (sModelName) {
+            this.getView().setModel(new JSONModel([]), sModelName);
+          } else {
+            this.getView().setModel(new JSONModel([]), 'goodsIssueItems');
+            this.getView().setModel(new JSONModel([]), 'FINISH_GOOD');
+            this.getView().setModel(new JSONModel([]), 'CO_PRODUCT');
+            this.getView().setModel(new JSONModel([]), 'BY_PRODUCT');
+          }
+        },
+
+        goOrders: function(t, e) {
+          this.getOwnerComponent().displayTarget('MasterList');
         },
 
         _requestFailure: function(t, e, i) {

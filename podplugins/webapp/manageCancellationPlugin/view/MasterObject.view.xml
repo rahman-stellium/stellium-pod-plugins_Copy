@@ -2,22 +2,57 @@
     controllerName="stellium.ext.podplugins.manageCancellationPlugin.controller.MasterObject" 
     xmlns:mvc="sap.ui.core.mvc" 
     xmlns:uxap="sap.uxap"
+    xmlns:l="sap.ui.layout"
     xmlns="sap.m"
     width="100%" 
     height="100%">
-    <uxap:ObjectPageLayout id="idMasterObjectPage" upperCaseAnchorBar="false" useIconTabBar="true">
+    <uxap:ObjectPageLayout id="idMasterObjectPage" 
+        upperCaseAnchorBar="false" 
+        useIconTabBar="true"
+        headerContentPinnable="false"
+        alwaysShowContentHeader="true"
+        navigate=".onNavigate">
         <uxap:headerTitle>
             <uxap:ObjectPageDynamicHeaderTitle >
+                <uxap:breadcrumbs>
+                    <Breadcrumbs>
+                        <Link text="Orders" press="goOrders"/>
+                        <currentLocation>
+                            <Link text="{entity>/shopOrder}"/>
+                        </currentLocation>
+                    </Breadcrumbs>
+                </uxap:breadcrumbs>
                 <uxap:actions>
                     <Button id="headerRefresh" text="Refresh" press='.onRefreshBtnPress'/>
                 </uxap:actions> 
             </uxap:ObjectPageDynamicHeaderTitle>
         </uxap:headerTitle>
         <uxap:headerContent>
-			<ObjectAttribute title="" text="This example explains the rules for the rendering of sections"/>
+			<uxap:ObjectPageDynamicHeaderContent>
+                <l:VerticalLayout class="sapUiSmallMarginBeginEnd">
+                    <ObjectAttribute title="Material"/>
+                    <Text text='{entity>/material}'/>
+                </l:VerticalLayout>
+                <l:VerticalLayout class="sapUiSmallMarginBeginEnd">
+                    <ObjectAttribute title="Material Description"/>
+                    <Text text='{entity>/materialDescription}'/>
+                </l:VerticalLayout>
+                <l:VerticalLayout class="sapUiSmallMarginBeginEnd">
+                    <ObjectAttribute title="SFC"/>
+                    <Text text='{entity>/sfc}'/>
+                </l:VerticalLayout>
+                <l:VerticalLayout class="sapUiSmallMarginBeginEnd">
+                    <ObjectAttribute title="Planned Batch"/>
+                    <Text text='{entity>/plannedBatch}'/>
+                </l:VerticalLayout>
+                <l:VerticalLayout class="sapUiSmallMarginBeginEnd">
+                    <ObjectAttribute title="Execution Status"/>
+                    <ObjectStatus text='{entity>/executionStatus}'/>
+                </l:VerticalLayout>
+            </uxap:ObjectPageDynamicHeaderContent>
 		</uxap:headerContent>
         <uxap:sections>
-            <uxap:ObjectPageSection titleUppercase="false">
+            <uxap:ObjectPageSection id="actQtyConfirmations" titleUppercase="false">
                 <uxap:ObjectPageSubSection titleUppercase="false" title="Confirmations">
                     <Table id="idConfirmationsTable" 
                         items="{
@@ -126,7 +161,7 @@
                     </Table>
                 </uxap:ObjectPageSubSection>
             </uxap:ObjectPageSection>
-            <uxap:ObjectPageSection titleUppercase="false">
+            <uxap:ObjectPageSection id="goodsIssue" titleUppercase="false">
                 <uxap:ObjectPageSubSection titleUppercase="false" title="Goods Issue">
                     <Table id="goodsIssueTable">
                         <columns>
@@ -150,7 +185,7 @@
                     </Table>
                 </uxap:ObjectPageSubSection>
             </uxap:ObjectPageSection>
-            <uxap:ObjectPageSection titleUppercase="false" title='Goods Receipt'>
+            <uxap:ObjectPageSection id="goodsReceiptSection" titleUppercase="false" title='Goods Receipt'>
                 <uxap:subSections>
                     <uxap:ObjectPageSubSection titleUppercase="false" title="Finished Goods">
                         <uxap:blocks>
