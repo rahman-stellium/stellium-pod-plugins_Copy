@@ -1,0 +1,61 @@
+<core:FragmentDefinition 
+    xmlns:core="sap.ui.core" 
+    xmlns="sap.m">
+    <Table id="goodsReceiptFinishGoodTable" items="{FINISH_GOOD>/}">
+        <columns>
+            <Column><Text text="Inventory ID"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Batch ID"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="HU Number"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Warehouse Number"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Production Supply Area"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Storage Bin"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Material"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Quantity"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Posted By"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Posting Date"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Created On"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Storage Location"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Comments"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Cancellation Reason"/></Column>
+            <Column><Text text="Status"/></Column>
+            <Column><Text text="Action"/></Column>
+        </columns>
+        <items>
+           <ColumnListItem>
+                <VBox>
+                    <ObjectIdentifier title="{FINISH_GOOD>inventoryId}"/>
+                    <ObjectStatus 
+                        state="Information"
+                        inverted="true"
+                        text="{FINISH_GOOD>postingTargetSystem}"/>
+                </VBox>
+                <Text text="{FINISH_GOOD>batch}"/>
+                <Text text="{FINISH_GOOD>handlingUnit}"/>
+                <Text text="{FINISH_GOOD>warehouseNumber}"/>
+                <Text text="{FINISH_GOOD>psa}"/>
+                <Text text="{FINISH_GOOD>psaBin}"/>
+                <VBox>
+                    <Text text="{
+                        parts:['FINISH_GOOD>material', 'FINISH_GOOD>materialVersion']
+                    }"/>
+                    <Text text="{FINISH_GOOD>materialDescription}"/>
+                </VBox>
+                <Text text="{
+                    parts:[
+                        'FINISH_GOOD>quantityInInputUOM',
+                        'FINISH_GOOD>inputUOM'
+                    ],
+                    formatter: '.quantityAndUnitFormatter'
+                }"/>
+                <Text text="{FINISH_GOOD>postedBy}"/>
+                <Text text="{FINISH_GOOD>postingDateTime}"/>
+                <Text text="{FINISH_GOOD>createdDateTime}"/>
+                <Text text="{FINISH_GOOD>storageLocation}"/>
+                <Text text="{FINISH_GOOD>comments}"/>
+                <Text text="{FINISH_GOOD>cancellationComments}"/>
+                <ObjectStatus text="{FINISH_GOOD>status}"/>
+                <Button text="Cancel"/>
+            </ColumnListItem>
+        </items>
+    </Table>
+</core:FragmentDefinition>

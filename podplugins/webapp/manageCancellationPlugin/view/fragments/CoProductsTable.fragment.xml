@@ -1,0 +1,61 @@
+<core:FragmentDefinition 
+    xmlns:core="sap.ui.core" 
+    xmlns="sap.m">
+    <Table id="goodsReceiptCoProductTable" items="{CO_PRODUCT>/}">
+        <columns>
+            <Column><Text text="Inventory ID"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Batch ID"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="HU Number"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Warehouse Number"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Production Supply Area"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Storage Bin"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Material"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Quantity"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Posted By"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Posting Date"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Created On"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Storage Location"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Comments"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Cancellation Reason"/></Column>
+            <Column><Text text="Status"/></Column>
+            <Column><Text text="Action"/></Column>
+        </columns>
+        <items>
+           <ColumnListItem>
+                <VBox>
+                    <ObjectIdentifier title="{CO_PRODUCT>inventoryId}"/>
+                    <ObjectStatus 
+                        state="Information"
+                        inverted="true"
+                        text="{CO_PRODUCT>postingTargetSystem}"/>
+                </VBox>
+                <Text text="{CO_PRODUCT>batch}"/>
+                <Text text="{CO_PRODUCT>handlingUnit}"/>
+                <Text text="{CO_PRODUCT>warehouseNumber}"/>
+                <Text text="{CO_PRODUCT>psa}"/>
+                <Text text="{CO_PRODUCT>psaBin}"/>
+                <VBox>
+                    <Text text="{
+                        parts:['CO_PRODUCT>material', 'CO_PRODUCT>materialVersion']
+                    }"/>
+                    <Text text="{CO_PRODUCT>materialDescription}"/>
+                </VBox>
+                <Text text="{
+                    parts:[
+                        'CO_PRODUCT>quantityInInputUOM',
+                        'CO_PRODUCT>inputUOM'
+                    ],
+                    formatter: '.quantityAndUnitFormatter'
+                }"/>
+                <Text text="{CO_PRODUCT>postedBy}"/>
+                <Text text="{CO_PRODUCT>postingDateTime}"/>
+                <Text text="{CO_PRODUCT>createdDateTime}"/>
+                <Text text="{CO_PRODUCT>storageLocation}"/>
+                <Text text="{CO_PRODUCT>comments}"/>
+                <Text text="{CO_PRODUCT>cancellationComments}"/>  
+                <ObjectStatus text="{CO_PRODUCT>status}"/>
+                <Button text="Cancel"/>
+            </ColumnListItem>
+        </items>
+    </Table>
+</core:FragmentDefinition>

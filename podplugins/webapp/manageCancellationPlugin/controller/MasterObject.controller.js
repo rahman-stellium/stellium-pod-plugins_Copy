@@ -279,10 +279,9 @@ sap.ui.define(
                 return;
               }
               this.currentTab = 'goodsReceipt';
-              //TODO
-              // this.getGoodsReceiptItems('FINISH_GOOD');
-              // this.getGoodsReceiptItems('CO_PRODUCT');
-              // this.getGoodsReceiptItems('BY_PRODUCT');
+              this.getGoodsReceiptItems('FINISH_GOOD');
+              this.getGoodsReceiptItems('CO_PRODUCT');
+              this.getGoodsReceiptItems('BY_PRODUCT');
               break;
 
             case viewId + '--goodsIssue':
@@ -577,6 +576,43 @@ sap.ui.define(
           );
         },
 
+        getGoodsReceiptItems: function(sTableName, bConcatFlag, sSearchTerm) {
+          // Set the busy state for the table if it's the first page
+          if (this.goodsReceiptPageNo[sTableName] === 0) {
+            this.setGoodsReceiptTableBusy(true, sTableName);
+          }
+
+          // Store the product type
+          this.productType = sTableName;
+
+          // Construct the URL for fetching goods receipt items
+          let sUrl =
+            this.getInventoryDataSourceUri() +
+            'postings/GR?order=' +
+            this.oQuery.shopOrder +
+            '&sfc=' +
+            this.oQuery.sfc +
+            '&productType=' +
+            this.productType +
+            '&page={pageNumber}&size=20&sort=createdDateTime,desc';
+
+          // Replace the placeholder for the page number
+          sUrl = sUrl.replace('{pageNumber}', this.goodsReceiptPageNo[sTableName]);
+
+          // If there is a search query or fuzzy search term, add it to the URL
+          if (sSearchTerm || this.sQuery) {
+            sUrl = sUrl + '&fuzzySearch=' + encodeURIComponent(sSearchTerm || this.sQuery);
+          }
+
+          // Send the GET request to the server
+          this.ajaxGetRequest(
+            sUrl,
+            null,
+            this._readGoodsReceiptItemsSuccess.bind(this, sTableName, bConcatFlag),
+            this._requestFailure.bind(this)
+          );
+        },
+
         getActivityConfirmations: function() {
           var that = this;
           return that
@@ -762,6 +798,85 @@ sap.ui.define(
           this.byId('headerRefresh').setEnabled(true);
         },
 
+        _readGoodsReceiptItemsSuccess: function(sTableName, bConcatFlag, oResponse) {
+          const oFinishGoodsTable = this.byId('goodsReceiptFinishGoodTable'),
+            oByProductTable = this.byId('goodsReceiptByProductTable'),
+            oCoProductTable = this.byId('goodsReceiptCoProductTable');
+
+          // If data is available
+          if (oResponse) {
+            // Increment the page number for the given product type
+            this.goodsReceiptPageNo[sTableName] = this.goodsReceiptPageNo[sTableName] + 1;
+
+            // Get the total number of elements
+            const iTotalElements = oResponse.totalElements;
+
+            // Update the title with the total elements count
+            this.getView()
+              .getModel('data')
+              .setProperty('/' + sTableName + '_TITLE', this.getI18nText(sTableName, [iTotalElements]));
+
+            // Get the content of the response
+            let aContent = oResponse.content;
+
+            // Retrieve existing data for the table, or initialize an empty array if none exists
+            let aTableData =
+              (this.getView().getModel(sTableName) && this.getView().getModel(sTableName).getData()) || [];
+
+            // Concatenate the new content to the existing data
+            aTableData = bConcatFlag ? aContent : aTableData.concat(aContent);
+
+            // Set the updated data to the model
+            this.getView().getModel(sTableName).setData(aTableData);
+
+            // Depending on the product type, set the appropriate table growing trigger
+            if (sTableName === 'FINISH_GOOD') {
+              this.setTableGrowingTrigger(oFinishGoodsTable, sTableName, iTotalElements);
+            } else if (sTableName === 'CO_PRODUCT') {
+              this.setTableGrowingTrigger(oCoProductTable, sTableName, iTotalElements);
+            } else {
+              this.setTableGrowingTrigger(oByProductTable, sTableName, iTotalElements);
+            }
+          }
+
+          // Set the table to not busy
+          this.setGoodsReceiptTableBusy(false, sTableName);
+
+          // Enable the refresh button
+          this.byId('headerRefresh').setEnabled(true);
+        },
+
+        setTableGrowingTrigger: function(oTable, sTableName, iTotalElements) {
+          // Get the current length of the data in the model
+          const iCurrentDataLength = this.getView().getModel(sTableName).getData().length;
+
+          // If the number of items in the table is greater than or equal to the total
+          if (iCurrentDataLength >= iTotalElements) {
+            // Mark the binding as final, meaning no more items will be loaded
+            oTable.getBindingInfo('items').binding.isLengthFinal = function() {
+              return true;
+            };
+
+            // Set the growing trigger text to empty
+            oTable.setGrowingTriggerText('');
+          } else {
+            // If more items need to be loaded, mark the binding as not final
+            oTable.getBindingInfo('items').binding.isLengthFinal = function() {
+              return false;
+            };
+
+            // Set the growing trigger text with the number of items loaded and total items
+            const sGrowingTriggerText = this.getI18nText('growingTriggerText', [iCurrentDataLength, iTotalElements]);
+            oTable.setGrowingTriggerText(sGrowingTriggerText);
+
+            // Make the growing trigger element visible
+            const s = oTable.getId() + '-triggerList';
+            if ($('#' + s)) {
+              $('#' + s).css('display', 'block');
+            }
+          }
+        },
+
         cancalletionAuthorizationCheck: function() {
           const sUrl = this.getDemandRestDataSourceUri() + 'shopOrderConfirmations/authorizations/check';
 
@@ -894,7 +1009,7 @@ sap.ui.define(
           }
         },
 
-        setGoodsReceiptTableBusy: function(bBusyState, e) {
+        setGoodsReceiptTableBusy: function(bBusyState, sTableName) {
           const oGRFinishedGoodsTab = this.byId('goodsReceiptFinishGoodTable'),
             oGRByProdTab = this.byId('goodsReceiptByProductTable'),
             oGRCoProdTab = this.byId('goodsReceiptCoProductTable');
@@ -903,18 +1018,20 @@ sap.ui.define(
           oGRByProdTab.setBusyIndicatorDelay(0);
           oGRCoProdTab.setBusyIndicatorDelay(0);
 
-          if (e) {
-            if (e === 'FINISH_GOOD') {
+          switch (sTableName) {
+            case 'FINISH_GOOD':
               oGRFinishedGoodsTab.setBusy(bBusyState);
-            } else if (e === 'CO_PRODUCT') {
+              break;
+            case 'CO_PRODUCT':
               oGRCoProdTab.setBusy(bBusyState);
-            } else {
+              break;
+            case 'BY_PRODUCT':
               oGRByProdTab.setBusy(bBusyState);
-            }
-          } else {
-            oGRFinishedGoodsTab.setBusy(bBusyState);
-            oGRByProdTab.setBusy(bBusyState);
-            oGRCoProdTab.setBusy(bBusyState);
+              break;
+            default:
+              oGRFinishedGoodsTab.setBusy(bBusyState);
+              oGRByProdTab.setBusy(bBusyState);
+              oGRCoProdTab.setBusy(bBusyState);
           }
         }
       }

@@ -1,6 +1,7 @@
 <mvc:View id="idMasterObjectView"
     controllerName="stellium.ext.podplugins.manageCancellationPlugin.controller.MasterObject" 
     xmlns:mvc="sap.ui.core.mvc" 
+    xmlns:core="sap.ui.core"
     xmlns:uxap="sap.uxap"
     xmlns:l="sap.ui.layout"
     xmlns="sap.m"
@@ -189,74 +190,23 @@
                 <uxap:subSections>
                     <uxap:ObjectPageSubSection titleUppercase="false" title="Finished Goods">
                         <uxap:blocks>
-                            <Table id="goodsReceiptFinishGoodTable">
-                                <columns>
-                                    <Column><Text text="Inventory ID"/></Column>
-                                    <Column><Text text="Batch ID"/></Column>
-                                    <Column><Text text="HU Number"/></Column>
-                                    <Column><Text text="Warehouse Number"/></Column>
-                                    <Column><Text text="Status"/></Column>
-                                    <Column><Text text="Actions"/></Column>
-                                </columns>
-                                <items>
-                                    <ColumnListItem >
-                                        <Text text="testItem"/>
-                                        <Text text="testItem"/>
-                                        <Text text="testItem"/>
-                                        <Text text="testItem"/>
-                                        <Text text="testItem"/>
-                                        <Button text="Cancel"/>
-                                    </ColumnListItem>
-                                </items>
-                            </Table>
+                            <core:Fragment 
+                                fragmentName="stellium.ext.podplugins.manageCancellationPlugin.view.fragments.FinishGoodsTable" 
+                                type="XML" />
                         </uxap:blocks>
                     </uxap:ObjectPageSubSection>
                     <uxap:ObjectPageSubSection titleUppercase="false" title="By-Products">
                         <uxap:blocks>
-                            <Table id="goodsReceiptByProductTable">
-                                <columns>
-                                    <Column><Text text="Inventory ID"/></Column>
-                                    <Column><Text text="Batch ID"/></Column>
-                                    <Column><Text text="HU Number"/></Column>
-                                    <Column><Text text="Warehouse Number"/></Column>
-                                    <Column><Text text="Status"/></Column>
-                                    <Column><Text text="Actions"/></Column>
-                                </columns>
-                                <items>
-                                    <ColumnListItem >
-                                        <Text text="testItem"/>
-                                        <Text text="testItem"/>
-                                        <Text text="testItem"/>
-                                        <Text text="testItem"/>
-                                        <Text text="testItem"/>
-                                        <Button text="Cancel"/>
-                                    </ColumnListItem>
-                                </items>
-                            </Table>
+                            <core:Fragment 
+                                fragmentName="stellium.ext.podplugins.manageCancellationPlugin.view.fragments.ByProductsTable" 
+                                type="XML" />
                         </uxap:blocks>
                     </uxap:ObjectPageSubSection>
                     <uxap:ObjectPageSubSection titleUppercase="false" title="Co-Products">
                         <uxap:blocks>
-                            <Table id="goodsReceiptCoProductTable">
-                                <columns>
-                                    <Column><Text text="Inventory ID"/></Column>
-                                    <Column><Text text="Batch ID"/></Column>
-                                    <Column><Text text="HU Number"/></Column>
-                                    <Column><Text text="Warehouse Number"/></Column>
-                                    <Column><Text text="Status"/></Column>
-                                    <Column><Text text="Actions"/></Column>
-                                </columns>
-                                <items>
-                                    <ColumnListItem >
-                                        <Text text="testItem"/>
-                                        <Text text="testItem"/>
-                                        <Text text="testItem"/>
-                                        <Text text="testItem"/>
-                                        <Text text="testItem"/>
-                                        <Button text="Cancel"/>
-                                    </ColumnListItem>
-                                </items>
-                            </Table>
+                            <core:Fragment 
+                                fragmentName="stellium.ext.podplugins.manageCancellationPlugin.view.fragments.CoProductsTable" 
+                                type="XML" />
                         </uxap:blocks>
                     </uxap:ObjectPageSubSection>
                 </uxap:subSections>
