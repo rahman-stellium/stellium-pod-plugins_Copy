@@ -1,0 +1,66 @@
+<core:FragmentDefinition 
+    xmlns:core="sap.ui.core" 
+    xmlns="sap.m">
+    <Table id="goodsIssueTable" items="{goodsIssueItems>/}">
+        <columns>
+            <Column><Text text="Inventory ID"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Batch ID"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="HU Number"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Warehouse Number"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Production Supply Area"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Storage Bin"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Material"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Quantity"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Posted By"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Posting Date"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Created On"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Storage Location"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Comments"/></Column>
+            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Cancellation Reason"/></Column>
+            <Column><Text text="Status"/></Column>
+            <Column><Text text="Action"/></Column>
+        </columns>
+        <items>
+           <ColumnListItem>
+                <VBox>
+                    <ObjectIdentifier title="{goodsIssueItems>inventoryId}"/>
+                    <ObjectStatus 
+                        state="Information"
+                        inverted="true"
+                        text="{goodsIssueItems>postingTargetSystem}"/>
+                </VBox>
+                <Text text="{goodsIssueItems>batch}"/>
+                <Text text="{goodsIssueItems>handlingUnit}"/>
+                <Text text="{goodsIssueItems>warehouseNumber}"/>
+                <Text text="{goodsIssueItems>psa}"/>
+                <Text text="{goodsIssueItems>psaBin}"/>
+                <VBox>
+                    <Text text="{
+                        parts:['goodsIssueItems>material', 'goodsIssueItems>materialVersion']
+                    }"/>
+                    <Text text="{goodsIssueItems>materialDescription}"/>
+                </VBox>
+                <Text text="{
+                    parts:[
+                        'goodsIssueItems>quantityInInputUOM',
+                        'goodsIssueItems>inputUOM'
+                    ],
+                    formatter: '.quantityAndUnitFormatter'
+                }"/>
+                <Text text="{goodsIssueItems>postedBy}"/>
+                <Text text="{goodsIssueItems>postingDateTime}"/>
+                <Text text="{goodsIssueItems>createdDateTime}"/>
+                <Text text="{goodsIssueItems>storageLocation}"/>
+                <Text text="{goodsIssueItems>comments}"/>
+                <Text text="{goodsIssueItems>cancellationComments}"/>
+                <ObjectStatus text="{goodsIssueItems>status}"/>
+                <Button text="Cancel" press="onCancelConfirmationPress">
+                    <customData>
+                        <core:CustomData key="cancelType" value='GI'/>
+                        <core:CustomData key="dataModelName" value='goodsIssueItems'/>
+                    </customData>
+                </Button>
+            </ColumnListItem>
+        </items>
+    </Table>
+</core:FragmentDefinition>

@@ -58,6 +58,7 @@ sap.ui.define(
               FINISH_GOOD_TITLE: this.getI18nText('FINISH_GOOD', [0]),
               CO_PRODUCT_TITLE: this.getI18nText('CO_PRODUCT', [0]),
               BY_PRODUCT_TITLE: this.getI18nText('BY_PRODUCT', [0]),
+              goodsIssueTitle: this.getI18nText('goodsIssueTitle', [0]),
               authorizedToCancel: false
             }),
             'data'
@@ -244,7 +245,7 @@ sap.ui.define(
               this.goodsIssuePageNo = 0;
               //TODO:
               // this.sQuery = this.byId('goodsIssueSearch').getValue();
-              // this.getGoodsIssueItems();
+              this.getGoodsIssueItems();
               break;
           }
         },
@@ -286,8 +287,7 @@ sap.ui.define(
 
             case viewId + '--goodsIssue':
               this.currentTab = 'goodsIssue';
-              //TODO
-              // this.getGoodsIssueItems();
+              this.getGoodsIssueItems();
               break;
           }
         },
@@ -322,7 +322,7 @@ sap.ui.define(
             acc[val.getKey()] = val.getValue();
             return acc;
           }, {});
-          
+
           if (oCustomData.cancelType === 'ActQtyCombined') {
             this.cancelActQtyConfirmation(oEvent);
           } else {
@@ -627,6 +627,40 @@ sap.ui.define(
           );
         },
 
+        getGoodsIssueItems: function() {
+          // If it's the first page, set the table as busy with no delay
+          if (this.goodsIssuePageNo === 0) {
+            const goodsIssueTable = this.byId('goodsIssueTable');
+            goodsIssueTable.setBusyIndicatorDelay(0);
+            goodsIssueTable.setBusy(true);
+          }
+
+          // Construct the URL for the GET request
+          let sUrl =
+            this.getInventoryDataSourceUri() +
+            'postings/GI?order=' +
+            this.oQuery.shopOrder +
+            '&sfc=' +
+            this.oQuery.sfc +
+            '&page={pageNumber}&size=20&sort=createdDateTime,desc';
+
+          // Replace the placeholder with the current page number
+          sUrl = sUrl.replace('{pageNumber}', this.goodsIssuePageNo);
+
+          // If there's a search query, append it to the URL
+          if (this.sQuery) {
+            sUrl += '&fuzzySearch=' + encodeURIComponent(this.sQuery);
+          }
+
+          // Send the GET request using AjaxUtil
+          this.ajaxGetRequest(
+            sUrl, // URL
+            null, // No payload for GET request
+            this._readGoodsIssueItemsSuccess.bind(this), // Success callback
+            this._requestFailure.bind(this) // Failure callback
+          );
+        },
+
         getActivityConfirmations: function() {
           var that = this;
           return that
@@ -857,6 +891,37 @@ sap.ui.define(
           this.setGoodsReceiptTableBusy(false, sTableName);
 
           // Enable the refresh button
+          this.byId('headerRefresh').setEnabled(true);
+        },
+
+        _readGoodsIssueItemsSuccess: function(oResponse) {
+          if (oResponse) {
+            // Increment the page number for goods issue items
+            this.goodsIssuePageNo++;
+
+            // Update the posting title with the total number of elements
+            this.getView()
+              .getModel('data')
+              .setProperty('/goodsIssueTitle', this.getI18nText('postingTitle', [oResponse.totalElements]));
+
+            // Retrieve the current goods issue items from the model, or initialize an empty array
+            var oGoodsIssueModel = this.getView().getModel('goodsIssueItems'),
+              aGiItems = oGoodsIssueModel.getData();
+
+            // Concatenate the new content with the existing items
+            aGiItems = aGiItems.concat(oResponse.content);
+
+            // Update the goods issue items model with the new data
+            oGoodsIssueModel.setData(aGiItems);
+
+            // Update the table's growing trigger based on the total number of elements
+            this.setTableGrowingTrigger(this.byId('goodsIssueTable'), 'goodsIssueItems', oResponse.totalElements);
+          }
+
+          // Mark the goods issue table as not busy
+          this.byId('goodsIssueTable').setBusy(false);
+
+          // Enable the header refresh button
           this.byId('headerRefresh').setEnabled(true);
         },
 

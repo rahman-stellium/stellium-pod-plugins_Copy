@@ -169,26 +169,9 @@
             </uxap:ObjectPageSection>
             <uxap:ObjectPageSection id="goodsIssue" titleUppercase="false">
                 <uxap:ObjectPageSubSection titleUppercase="false" title="Goods Issue">
-                    <Table id="goodsIssueTable">
-                        <columns>
-                            <Column><Text text="Inventory ID"/></Column>
-                            <Column><Text text="Batch ID"/></Column>
-                            <Column><Text text="HU Number"/></Column>
-                            <Column><Text text="Warehouse Number"/></Column>
-                            <Column><Text text="Status"/></Column>
-                            <Column><Text text="Actions"/></Column>
-                        </columns>
-                        <items>
-                            <ColumnListItem >
-                                <Text text="testItem"/>
-                                <Text text="testItem"/>
-                                <Text text="testItem"/>
-                                <Text text="testItem"/>
-                                <Text text="testItem"/>
-                                <Button text="Cancel"/>
-                            </ColumnListItem>
-                        </items>
-                    </Table>
+                    <core:Fragment 
+                        fragmentName="stellium.ext.podplugins.manageCancellationPlugin.view.fragments.GoodsIssueTable" 
+                        type="XML" />
                 </uxap:ObjectPageSubSection>
             </uxap:ObjectPageSection>
             <uxap:ObjectPageSection id="goodsReceiptSection" titleUppercase="false" title='Goods Receipt'>
