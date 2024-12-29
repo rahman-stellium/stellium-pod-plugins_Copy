@@ -71,67 +71,67 @@
                                 descending: false
                             }]
                         }">
-                        <headerToolbar>
-                            <OverflowToolbar>
-                                <Title text="{= 'Confirmations (' + ${confirmationItems>/}.length + ')'}" />
-                                <ToolbarSpacer/>
-                                <Input 
-                                    placeholder="Search" 
-                                    liveChange="onConfirmationsSearch" 
-                                    width="10rem" />
-                                <Button icon="sap-icon://action-settings" press="onConfirmSettingsBtnPress" tooltip="Settings" visible="false"/>
-                            </OverflowToolbar>
-                        </headerToolbar>
-                        <columns>
-                            <Column width='10%'>
-                                <Text text="{i18n>operationDescription}" />
-                            </Column>
-                            <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
-                                <Text text="{i18n>confirmationGroup}" />
-                            </Column>
-                            <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
-                                <Text text="{i18n>confirmationCounter}" />
-                            </Column>
-                            <Column width='15%' minScreenWidth="Desktop" demandPopin="true">
-                                <Text text="{i18n>standardValueTargets}" />
-                            </Column>
-                            <Column width='15%' minScreenWidth="Desktop" demandPopin="true">
-                                <Text text="{i18n>standardValuePosted}" />
-                            </Column>
-                            <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
-                                <Text text="{i18n>postedBy}" width="auto" />
-                            </Column>
-                            <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
-                                <Text text="{i18n>createdOn}" />
-                            </Column>
-                            <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
-                                <Text text="{i18n>cancellationReason}" />
-                            </Column>
-                            <Column width="7%">
-                                <Text text="{i18n>status}" />
-                            </Column>
-                            <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
-                                <Text text="{i18n>order}" /> 
-                            </Column>
-                            <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
-                                <Text text="{i18n>yieldQuantity}" />
-                            </Column>
-                            <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
-                                <Text text="{i18n>scrapQuantity}" />
-                            </Column>
-                            <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
-                                <Text text="{i18n>reasonCodeDescription}" />
-                            </Column>
-                            <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
-                                <Text text="{i18n>workCenter}" /> 
-                            </Column>
-                            <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
-                                <Text text="{i18n>resource}" /> 
-                            </Column>
-                            <Column width='10%'>
-                                <Text text="{i18n>actions}" />
-                            </Column>
-                        </columns>
+                <headerToolbar>
+                        <OverflowToolbar>
+                            <Title text="{= 'Confirmations (' + ${confirmationItems>/}.length + ')'}" />
+                            <ToolbarSpacer/>
+                            <Input 
+                                placeholder="Search" 
+                                liveChange="onConfirmationsSearch" 
+                                width="10rem" />
+                            <Button icon="sap-icon://action-settings" press="onConfirmSettingsBtnPress" tooltip="Settings" visible="true"/>
+                        </OverflowToolbar>
+                </headerToolbar>
+                    <columns>
+                        <Column id="operationDescriptionConfCol" width='10%'>
+                            <Text text="{i18n>operationDescription}" />
+                        </Column>
+                        <Column id="confirmationGroupConfCol" width='10%' minScreenWidth="Desktop" demandPopin="true">
+                            <Text text="{i18n>confirmationGroup}" />
+                        </Column>
+                        <Column id="confirmationCounterConfCol" width='10%' minScreenWidth="Desktop" demandPopin="true">
+                            <Text text="{i18n>confirmationCounter}" />
+                        </Column>
+                        <Column id="standardValueTargetsConfCol" width='15%' minScreenWidth="Desktop" demandPopin="true">
+                            <Text text="{i18n>standardValueTargets}" />
+                        </Column>
+                        <Column id="standardValuePostedConfCol" width='15%' minScreenWidth="Desktop" demandPopin="true">
+                            <Text text="{i18n>standardValuePosted}" />
+                        </Column>
+                        <Column id="postedByConfCol" width='10%' minScreenWidth="Desktop" demandPopin="true">
+                            <Text text="{i18n>postedBy}" width="auto" />
+                        </Column>
+                        <Column id="createdOnConfCol" width='10%' minScreenWidth="Desktop" demandPopin="true">
+                            <Text text="{i18n>createdOn}" />
+                        </Column>
+                        <Column id="cancellationReasonConfCol" width='10%' minScreenWidth="Desktop" demandPopin="true">
+                            <Text text="{i18n>cancellationReason}" />
+                        </Column>
+                        <Column id="statusConfCol" width="7%">
+                            <Text text="{i18n>status}" />
+                        </Column>
+                        <Column id="orderConfCol" width='10%' minScreenWidth="Desktop" demandPopin="true">
+                            <Text text="{i18n>order}" /> 
+                        </Column>
+                        <Column id="yieldQuantityConfCol" width='10%' minScreenWidth="Desktop" demandPopin="true">
+                            <Text text="{i18n>yieldQuantity}" />
+                        </Column>
+                        <Column id="scrapQuantityConfCol" width='10%' minScreenWidth="Desktop" demandPopin="true">
+                            <Text text="{i18n>scrapQuantity}" />
+                        </Column>
+                        <Column id="reasonCodeDescriptionConfCol" width='10%' minScreenWidth="Desktop" demandPopin="true">
+                            <Text text="{i18n>reasonCodeDescription}" />
+                        </Column>
+                        <Column id="workCenterConfCol" width='10%' minScreenWidth="Desktop" demandPopin="true">
+                            <Text text="{i18n>workCenter}" /> 
+                        </Column>
+                        <Column id="resourceConfCol" width='10%' minScreenWidth="Desktop" demandPopin="true">
+                            <Text text="{i18n>resource}" /> 
+                        </Column>
+                        <Column id="actionsConfCol" width='10%'>
+                            <Text text="{i18n>actions}" />
+                        </Column>
+                    </columns>
                         <items>
                             <ColumnListItem>
                                 <cells>
@@ -168,7 +168,7 @@
                                     <Text text="{confirmationItems>reasonCode} / {activityConfirmationItem>reasonCodeDescription}" />
                                     <Text text="{confirmationItems>workCenter}" />
                                     <Text text="{confirmationItems>resource}" />
-                                    <Button text="{i18n>cancelButton}" press=".onCancelConfirmationPress">
+                                    <Button text="{i18n>cancelButton}" press=".onCancelConfirmationPress" visible="{data>/authorizedToCancel}">
                                         <customData>
                                             <core:CustomData key="cancelType" value='ActQtyCombined'/>
                                             <core:CustomData key="dataModelName" value='FINISH_GOOD'/>
