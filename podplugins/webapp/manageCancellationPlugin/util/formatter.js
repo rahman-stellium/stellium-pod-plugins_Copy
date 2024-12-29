@@ -37,7 +37,7 @@ sap.ui.define(['sap/ui/core/format/DateFormat', 'sap/ui/core/date/UI5Date', 'sap
 
     formatSingleDate: function(sDate) {
       var oDate = UI5Date.getInstance(sDate);
-      return DateFormat.getDateInstance({pattern: 'MMM dd, yyyy, hh:mm:ss a'}).format(oDate);
+      return DateFormat.getDateInstance({ pattern: 'MMM dd, yyyy, hh:mm:ss a' }).format(oDate);
     },
 
     materialFormatter: function(sMaterial, sVersion) {
@@ -68,57 +68,101 @@ sap.ui.define(['sap/ui/core/format/DateFormat', 'sap/ui/core/date/UI5Date', 'sap
       }
       return e;
     },
-    formatSingleDate: function (sDate) {
-      if (!sDate) return "";
+
+    formatSingleDate: function(sDate) {
+      if (!sDate) return '';
       const oDate = new Date(sDate);
       const oDateFormat = DateFormat.getDateInstance({
-          pattern: "MMM dd, yyyy"
+        pattern: 'MMM dd, yyyy'
       });
       return oDateFormat.format(oDate);
-  },
-  formatExecutionStatus: function (sStatus) {
-    switch (sStatus) {
-        case "ACTIVE":
-            return "Active";
-        case "NOT_IN_EXECUTION":
-            return "Not In Execution";
-        case "POSTED_IN_DM":
-            return "Posted"
-        case "POSTED_TO_TARGET_SYS":
-            return "Posted"
-        case "CONF_SUCCESS":
-          return "Posted"
+    },
+
+    formatExecutionStatus: function(sStatus) {
+      switch (sStatus) {
+        case 'ACTIVE':
+          return 'Active';
+        case 'NOT_IN_EXECUTION':
+          return 'Not In Execution';
+        case 'POSTED_IN_DM':
+          return 'Posted';
+        case 'POSTED_TO_TARGET_SYS':
+          return 'Posted';
+        case 'CONF_SUCCESS':
+          return 'Posted';
         default:
-            return sStatus;
-    }
-},
-formatBatchNumber: function (sBatch) {
-  if(! sBatch){
-      return "–";
-  }
+          return sStatus;
+      }
+    },
+
+    formatBatchNumber: function(sBatch) {
+      if (!sBatch) {
+        return '–';
+      }
       return sBatch;
-  },
-  formatDateAndTime: function (sDateTime) {
-    if (!sDateTime) {
-        return "";
-    }
-    const oDate = new Date(sDateTime);
-    // Check if the date is valid
-    if (isNaN(oDate)) {
+    },
+
+    formatDateAndTime: function(sDateTime) {
+      if (!sDateTime) {
+        return '';
+      }
+      const oDate = new Date(sDateTime);
+      // Check if the date is valid
+      if (isNaN(oDate)) {
         return sDateTime;
+      }
+
+      // Format the date to "MMM dd, yyyy, hh:mm:ss AM/PM" format
+      const options = {
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+      };
+      return oDate.toLocaleString('en-US', options);
+    },
+
+    statusTextFormatter: function(status) {
+      let formattedText;
+      switch (status) {
+        case 'POSTED_IN_DMC':
+          formattedText = this.getI18nText('status.postingPending');
+          break;
+        case 'POSTED_TO_TARGET_SYS':
+          formattedText = this.getI18nText('status.confirmed');
+          break;
+        case 'FAILED_TO_POST_TO_TARGET_SYS':
+        case 'CONFIRMATION_FAIL':
+          formattedText = this.getI18nText('status.postingFailed');
+          break;
+        case 'CANCELLATION_POSTED_IN_DMC':
+          formattedText = this.getI18nText('status.cancellationPending');
+          break;
+        case 'CANCEL_FAILED':
+        case 'CANCEL_SUCCESS':
+        case 'CANCELLATION_SENT':
+        case 'CANCEL_PENDING':
+        case 'CANCELLATION_PENDING':
+        case 'CANCELLED_IN_DM':
+        case 'CANCELLATION_POSTED_TO_TARGET_SYS':
+          formattedText = this.getI18nText('status.cancellationSent');
+          break;
+        case 'CONF_PENDING':
+        case 'CONF_SUCCESS':
+        case 'CONF_FAILED':
+        case 'CONFIRMATION_PENDING':
+        case 'CONFIRMATION_SENT':
+        case 'POSTED_IN_DM':
+        case 'SENT_TO_S4':
+          formattedText = this.getI18nText('status.confirmationSent');
+          break;
+        case 'CANCELLATION_FAILED_TO_POST_TO_TARGET_SYS':
+          formattedText = this.getI18nText('status.cancellationFailed');
+      }
+      return formattedText;
     }
-    
-    // Format the date to "MMM dd, yyyy, hh:mm:ss AM/PM" format
-    const options = {
-        year: "numeric",
-        month: "short",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: true,
-    };
-    return oDate.toLocaleString("en-US", options);
-}
   };
 });

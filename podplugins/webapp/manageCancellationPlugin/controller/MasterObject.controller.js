@@ -211,8 +211,10 @@ sap.ui.define(
 
           this.getView().setModel(new JSONModel(oQuery), 'entity');
           this.oQuery = oQuery;
-          this.activityConfirmationPageNo = 0;
 
+          this.activityConfirmationPageNo = 0;
+          this.quantityConfirmationPageNo=0;
+          
           this.getOrderDetail(oQuery.shopOrder);
           // apply class to Active Text
           this.updateExecutionStatusClass(oQuery.executionStatus);
@@ -822,12 +824,12 @@ sap.ui.define(
         },
 
         _readQuantityConfirmationItemsSuccess: function(oResponse) {
+          const oQtyConfModel = this.getView().getModel('quantityConfirmationItems');
           if (oResponse) {
             this.getView()
               .getModel('data')
               .setProperty('/quantityConfirmationTitle', this.getI18nText('postingTitle', [oResponse.totalElements]));
 
-            const oQtyConfModel = this.getView().getModel('quantityConfirmationItems');
 
             if (this.quantityConfirmationPageNo === 0) {
               oQtyConfModel.setData(oResponse.content);
@@ -843,6 +845,8 @@ sap.ui.define(
             //   'quantityConfirmationItems',
             //   oResponse.totalElements
             // );
+          }else{
+            oQtyConfModel.setData([]);
           }
 
           this.byId('idConfirmationsTable').setBusy(false);
