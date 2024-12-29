@@ -229,6 +229,7 @@ sap.ui.define(
           switch (this.currentTab) {
             case 'actQtyConfirmations':
               this.activityConfirmationPageNo = 0;
+              this.quantityConfirmationPageNo = 0;
               // this.sQuery = this.byId('activityConfirmationSearch').getValue();
               this.getActQtyConfirmationData();
               break;
@@ -278,6 +279,7 @@ sap.ui.define(
             case viewId + '--actQtyConfirmations':
               this.currentTab = 'actQtyConfirmations';
               this.getActQtyConfirmationData();
+              break;
 
             case viewId + '--goodsReceiptSection':
               if (this.currentTab === 'goodsReceipt') {
