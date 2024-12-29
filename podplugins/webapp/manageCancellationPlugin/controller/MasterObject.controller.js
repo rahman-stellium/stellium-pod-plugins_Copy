@@ -408,7 +408,8 @@ sap.ui.define(
         },
 
         onConfirmCancellationBtnPress: function() {
-          this.onSubmitDialogPress();
+          //this.onSubmitDialogPress();
+          this.onSubmitDialogPress(null,'ActQtyCombined');
         },
 
         /**
