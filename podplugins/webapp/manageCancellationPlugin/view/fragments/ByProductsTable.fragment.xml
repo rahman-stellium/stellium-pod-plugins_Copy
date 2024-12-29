@@ -44,8 +44,7 @@
                     parts:[
                         'BY_PRODUCT>quantityInInputUOM',
                         'BY_PRODUCT>inputUOM'
-                    ],
-                    formatter: '.quantityAndUnitFormatter'
+                    ]
                 }"/>
                 <Text text="{BY_PRODUCT>postedBy}"/>
                 <Text text="{BY_PRODUCT>postingDateTime}"/>

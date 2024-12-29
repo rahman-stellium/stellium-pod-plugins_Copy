@@ -1,4 +1,8 @@
-sap.ui.define(['sap/ui/core/format/DateFormat', 'sap/ui/core/date/UI5Date'], function(DateFormat, UI5Date) {
+sap.ui.define(['sap/ui/core/format/DateFormat', 'sap/ui/core/date/UI5Date', 'sap/dm/dme/util/PlantSettings'], function(
+  DateFormat,
+  UI5Date,
+  PlantSettings
+) {
   const STATUS = {
     CLOSED: 'shopOrderStatus.closed',
     DISCARDED: 'shopOrderStatus.discarded',
@@ -29,6 +33,11 @@ sap.ui.define(['sap/ui/core/format/DateFormat', 'sap/ui/core/date/UI5Date'], fun
       }
 
       return this.getOwnerComponent().getModel('i18n').getResourceBundle().getText(sStatusTextId);
+    },
+
+    formatSingleDate: function(sDate) {
+      var oDate = UI5Date.getInstance(sDate);
+      return DateFormat.getDateInstance({pattern: 'MMM dd, yyyy, hh:mm:ss a'}).format(oDate);
     },
 
     materialFormatter: function(sMaterial, sVersion) {

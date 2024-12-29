@@ -44,8 +44,7 @@
                     parts:[
                         'FINISH_GOOD>quantityInInputUOM',
                         'FINISH_GOOD>inputUOM'
-                    ],
-                    formatter: '.quantityAndUnitFormatter'
+                    ]
                 }"/>
                 <Text text="{FINISH_GOOD>postedBy}"/>
                 <Text text="{FINISH_GOOD>postingDateTime}"/>

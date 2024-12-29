@@ -147,7 +147,7 @@
                                     <Text text="{confirmationItems>cancellationReason}" />
                                     <Text text="{
                                         path: 'confirmationItems>status', 
-                                        formatter: '.formatter.formatExecutionStatus'
+                                        formatter: '.formatter.executionStatusTextFormatter'
                                     }" />
                                     <Text text="{confirmationItems>shopOrder}"/>
                                     <Text text="{confirmationItems>yieldQuantity/value} {confirmationItems>yieldQuantity/unitOfMeasure/uom}"/>
