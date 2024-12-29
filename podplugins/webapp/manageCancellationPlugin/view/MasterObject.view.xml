@@ -17,44 +17,47 @@
             <uxap:ObjectPageDynamicHeaderTitle >
                 <uxap:breadcrumbs>
                     <Breadcrumbs>
-                        <Link text="Orders" press="goOrders"/>
-                        <currentLocation>
-                            <Link text="{entity>/shopOrder}"/>
-                        </currentLocation>
+                        <Link text="{i18n>ordersLink}" press="goOrders"/>
+                        <Link text="{entity>/shopOrder}"/>
                     </Breadcrumbs>
                 </uxap:breadcrumbs>
                 <uxap:actions>
-                    <Button id="headerRefresh" text="Refresh" press='.onRefreshBtnPress'/>
+                    <Button id="headerRefresh" text="{i18n>refresh}" press='.onRefreshBtnPress'/>
                 </uxap:actions> 
             </uxap:ObjectPageDynamicHeaderTitle>
         </uxap:headerTitle>
         <uxap:headerContent>
 			<uxap:ObjectPageDynamicHeaderContent>
                 <l:VerticalLayout class="sapUiSmallMarginBeginEnd">
-                    <ObjectAttribute title="Material"/>
+                    <ObjectAttribute title="{i18n>material}"/>
                     <Text text='{entity>/material}'/>
                 </l:VerticalLayout>
                 <l:VerticalLayout class="sapUiSmallMarginBeginEnd">
-                    <ObjectAttribute title="Material Description"/>
+                    <ObjectAttribute title="{i18n>materialDescription}"/>
                     <Text text='{entity>/materialDescription}'/>
                 </l:VerticalLayout>
                 <l:VerticalLayout class="sapUiSmallMarginBeginEnd">
-                    <ObjectAttribute title="SFC"/>
+                    <ObjectAttribute title="{i18n>sfc}"/>
                     <Text text='{entity>/sfc}'/>
                 </l:VerticalLayout>
                 <l:VerticalLayout class="sapUiSmallMarginBeginEnd">
-                    <ObjectAttribute title="Planned Batch"/>
-                    <Text text='{entity>/plannedBatch}'/>
+                    <ObjectAttribute title="{i18n>plannedBatch}"/>
+                    <!-- <Text text='{entity>/plannedBatch}'/> -->
+                    <Text text="{parts: [{path: 'entity>/plannedBatch'}], 
+                          formatter: '.formatter.formatBatchNumber'}" />
                 </l:VerticalLayout>
                 <l:VerticalLayout class="sapUiSmallMarginBeginEnd">
-                    <ObjectAttribute title="Execution Status"/>
-                    <ObjectStatus text='{entity>/executionStatus}'/>
+                    <ObjectAttribute title="{i18n>executionStatus}"/>
+                    <!-- <ObjectStatus text='{entity>/executionStatus}'/> -->
+                    <Text id="idActiveTxt" text="{parts: [{path: 'entity>/executionStatus'}], 
+                          formatter: '.formatter.formatExecutionStatus'}" />
                 </l:VerticalLayout>
             </uxap:ObjectPageDynamicHeaderContent>
 		</uxap:headerContent>
         <uxap:sections>
             <uxap:ObjectPageSection id="actQtyConfirmations" titleUppercase="false">
-                <uxap:ObjectPageSubSection titleUppercase="false" title="Confirmations">
+                <uxap:ObjectPageSubSection titleUppercase="false" title="{i18n>confirmationsTitle}">
+                 
                     <Table id="idConfirmationsTable" 
                         items="{
                             path: 'confirmationItems>/',
@@ -69,56 +72,68 @@
                                 descending: false
                             }]
                         }">
+                        <headerToolbar>
+        <OverflowToolbar>
+            <Title text="{= 'Confirmations (' + ${confirmationItems>/}.length + ')'}" />
+            <ToolbarSpacer/>
+            <Input 
+                placeholder="Search" 
+                liveChange="onConfirmationsSearch" 
+                width="10rem" />
+            <Button icon="sap-icon://action-settings" press="onConfirmSettingsBtnPress" tooltip="Settings" visible="false"/>
+        </OverflowToolbar>
+    </headerToolbar>
                         <columns>
-                            <Column width='10%'>
-                                <Text text="Operation / Description" />
-                            </Column>
-                            <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
-                                <Text text="Confirmation Group" />
-                            </Column>
-                            <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
-                                <Text text="Confirmation Counter" />
-                            </Column>
-                            <Column width='15%' minScreenWidth="Desktop" demandPopin="true">
-                                <Text text="Standard Value Targets" />
-                            </Column>
-                            <Column  width='15%' minScreenWidth="Desktop" demandPopin="true">
-                                <Text text="Standard Value Posted" />
-                            </Column>
-                            <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
-                                <Text text="Posted By" width="auto" />
-                            </Column>
-                            <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
-                                <Text text="Created On" />
-                            </Column>
-                            <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
-                                <Text text="Cancellation Reason" />
-                            </Column>
-                            <Column width="7%">
-                                <Text text="Status" />
-                            </Column>
-                            <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
-                                <Text text="Order"/> 
-                            </Column>
-                            <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
-                                <Text text="Yield Quantity" />
-                            </Column>
-                            <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
-                                <Text text="Scrap Quantity" />
-                            </Column>
-                            <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
-                                <Text text="Reason Code / Description" />
-                            </Column>
-                            <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
-                                <Text text="Work Center" /> 
-                            </Column>
-                            <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
-                                <Text text="Resource"/> 
-                            </Column>
-                            <Column width='10%'>
-                                <Text text="Actions"/>
-                            </Column>
-                        </columns>
+    <Column width='10%'>
+        <Text text="{i18n>operationDescription}" />
+    </Column>
+    <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
+        <Text text="{i18n>confirmationGroup}" />
+    </Column>
+    <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
+        <Text text="{i18n>confirmationCounter}" />
+    </Column>
+    <Column width='15%' minScreenWidth="Desktop" demandPopin="true">
+        <Text text="{i18n>standardValueTargets}" />
+    </Column>
+    <Column width='15%' minScreenWidth="Desktop" demandPopin="true">
+        <Text text="{i18n>standardValuePosted}" />
+    </Column>
+    <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
+        <Text text="{i18n>postedBy}" width="auto" />
+    </Column>
+    <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
+        <Text text="{i18n>createdOn}" />
+    </Column>
+    <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
+        <Text text="{i18n>cancellationReason}" />
+    </Column>
+    <Column width="7%">
+        <Text text="{i18n>status}" />
+    </Column>
+    <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
+        <Text text="{i18n>order}" /> 
+    </Column>
+    <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
+        <Text text="{i18n>yieldQuantity}" />
+    </Column>
+    <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
+        <Text text="{i18n>scrapQuantity}" />
+    </Column>
+    <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
+        <Text text="{i18n>reasonCodeDescription}" />
+    </Column>
+    <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
+        <Text text="{i18n>workCenter}" /> 
+    </Column>
+    <Column width='10%' minScreenWidth="Desktop" demandPopin="true">
+        <Text text="{i18n>resource}" /> 
+    </Column>
+    <Column width='10%'>
+        <Text text="{i18n>actions}" />
+    </Column>
+</columns>
+
                         <items>
                             <ColumnListItem>
                                 <cells>
@@ -147,7 +162,7 @@
                                     <Text text="{confirmationItems>cancellationReason}" />
                                     <Text text="{
                                         path: 'confirmationItems>status', 
-                                        formatter: '.formatter.executionStatusTextFormatter'
+                                        formatter: '.formatter.formatExecutionStatus'
                                     }" />
                                     <Text text="{confirmationItems>shopOrder}"/>
                                     <Text text="{confirmationItems>yieldQuantity/value} {confirmationItems>yieldQuantity/unitOfMeasure/uom}"/>
@@ -155,7 +170,7 @@
                                     <Text text="{confirmationItems>reasonCode} / {activityConfirmationItem>reasonCodeDescription}" />
                                     <Text text="{confirmationItems>workCenter}" />
                                     <Text text="{confirmationItems>resource}" />
-                                    <Button text="Cancel" press=".onCancelConfirmationPress">
+                                    <Button text="{i18n>cancelButton}" press=".onCancelConfirmationPress">
                                         <customData>
                                             <core:CustomData key="cancelType" value='ActQtyCombined'/>
                                             <core:CustomData key="dataModelName" value='FINISH_GOOD'/>
@@ -168,29 +183,29 @@
                 </uxap:ObjectPageSubSection>
             </uxap:ObjectPageSection>
             <uxap:ObjectPageSection id="goodsIssue" titleUppercase="false">
-                <uxap:ObjectPageSubSection titleUppercase="false" title="Goods Issue">
+                <uxap:ObjectPageSubSection titleUppercase="false" title="{i18n>goodsIssueTitle}">
                     <core:Fragment 
                         fragmentName="stellium.ext.podplugins.manageCancellationPlugin.view.fragments.GoodsIssueTable" 
                         type="XML" />
                 </uxap:ObjectPageSubSection>
             </uxap:ObjectPageSection>
-            <uxap:ObjectPageSection id="goodsReceiptSection" titleUppercase="false" title='Goods Receipt'>
+            <uxap:ObjectPageSection id="goodsReceiptSection" titleUppercase="false" title="{i18n>goodsReceiptTitle}">
                 <uxap:subSections>
-                    <uxap:ObjectPageSubSection titleUppercase="false" title="Finished Goods">
+                    <uxap:ObjectPageSubSection titleUppercase="false" >
                         <uxap:blocks>
                             <core:Fragment 
                                 fragmentName="stellium.ext.podplugins.manageCancellationPlugin.view.fragments.FinishGoodsTable" 
                                 type="XML" />
                         </uxap:blocks>
                     </uxap:ObjectPageSubSection>
-                    <uxap:ObjectPageSubSection titleUppercase="false" title="By-Products">
+                    <uxap:ObjectPageSubSection titleUppercase="false" >
                         <uxap:blocks>
                             <core:Fragment 
                                 fragmentName="stellium.ext.podplugins.manageCancellationPlugin.view.fragments.ByProductsTable" 
                                 type="XML" />
                         </uxap:blocks>
                     </uxap:ObjectPageSubSection>
-                    <uxap:ObjectPageSubSection titleUppercase="false" title="Co-Products">
+                    <uxap:ObjectPageSubSection titleUppercase="false" >
                         <uxap:blocks>
                             <core:Fragment 
                                 fragmentName="stellium.ext.podplugins.manageCancellationPlugin.view.fragments.CoProductsTable" 

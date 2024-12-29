@@ -214,6 +214,8 @@ sap.ui.define(
           this.activityConfirmationPageNo = 0;
 
           this.getOrderDetail(oQuery.shopOrder);
+          // apply class to Active Text
+          this.updateExecutionStatusClass(oQuery.executionStatus);
         },
 
         onRefreshBtnPress: function() {
@@ -1141,7 +1143,38 @@ sap.ui.define(
               oGRByProdTab.setBusy(bBusyState);
               oGRCoProdTab.setBusy(bBusyState);
           }
-        }
+        },
+        // To update text to green in header
+        updateExecutionStatusClass: function (sExecutionStatus) {
+          var oTextControl = this.byId("idActiveTxt");
+          oTextControl.removeStyleClass("executionStatusActive");
+          oTextControl.removeStyleClass("executionStatusDefault");
+          if (sExecutionStatus === "ACTIVE" || sExecutionStatus === "Active") {
+            oTextControl.addStyleClass("executionStatusActive");
+          } else {
+            oTextControl.addStyleClass("executionStatusDefault");
+          }
+        },
+        // Confirmation Table Settings press
+        onConfirmSettingsBtnPress: function() {
+          this._oTableSettings.openDialog();
+        },
+        // Goods Issue Table Settings press
+        onGoodsIssueSettingsBtnPress: function() {
+          this.goodsIssueTableSettings.openDialog();
+        },
+        // Goods Receipt Finished Goods Table Settings press
+        onGoodsReceiptFGSettingsBtnPress: function() {
+          this.goodsReceiptFinishGoodTableSettings.openDialog();
+        },
+        // Goods Receipt By-Product Table Settings press
+        onGoodsReceiptBPSettingsBtnPress: function() {
+          this.goodsReceiptByProductTableSettings.openDialog();
+        },
+        // Goods Receipt Co-Product Table Settings press
+        onGoodsReceiptCPSettingsBtnPress: function() {
+          this.goodsReceiptCoProductTableSettings.openDialog();
+        },
       }
     );
 

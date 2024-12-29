@@ -2,24 +2,36 @@
     xmlns:core="sap.ui.core" 
     xmlns="sap.m">
     <Table id="goodsIssueTable" items="{goodsIssueItems>/}">
+    <headerToolbar>
+        <OverflowToolbar>
+            <Title text="{= 'Postings (' + ${goodsIssueItems>/}.length + ')'}" />
+            <ToolbarSpacer/>
+            <Input 
+                placeholder="Search" 
+                liveChange="onGoodsIssueSearch" 
+                width="10rem" />
+            <Button icon="sap-icon://action-settings" press="onGoodsIssueSettingsBtnPress" tooltip="Settings" visible="false"/>
+        </OverflowToolbar>
+    </headerToolbar>
         <columns>
-            <Column><Text text="Inventory ID"/></Column>
-            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Batch ID"/></Column>
-            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="HU Number"/></Column>
-            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Warehouse Number"/></Column>
-            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Production Supply Area"/></Column>
-            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Storage Bin"/></Column>
-            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Material"/></Column>
-            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Quantity"/></Column>
-            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Posted By"/></Column>
-            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Posting Date"/></Column>
-            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Created On"/></Column>
-            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Storage Location"/></Column>
-            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Comments"/></Column>
-            <Column minScreenWidth="Desktop" demandPopin="true"><Text text="Cancellation Reason"/></Column>
-            <Column><Text text="Status"/></Column>
-            <Column><Text text="Action"/></Column>
-        </columns>
+    <Column><Text text="{i18n>inventoryId}"/></Column>
+    <Column minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>batchId}"/></Column>
+    <Column minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>huNumber}"/></Column>
+    <Column minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>warehouseNumber}"/></Column>
+    <Column minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>productionSupplyArea}"/></Column>
+    <Column minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>storageBin}"/></Column>
+    <Column minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>material}"/></Column>
+    <Column minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>quantity}"/></Column>
+    <Column minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>postedBy}"/></Column>
+    <Column minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>postingDate}"/></Column>
+    <Column minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>createdOn}"/></Column>
+    <Column minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>storageLocation}"/></Column>
+    <Column minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>comments}"/></Column>
+    <Column minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>cancellationReason}"/></Column>
+    <Column><Text text="{i18n>status}"/></Column>
+    <Column><Text text="{i18n>action}"/></Column>
+</columns>
+
         <items>
            <ColumnListItem>
                 <VBox>
@@ -47,13 +59,16 @@
                     ]
                 }"/>
                 <Text text="{goodsIssueItems>postedBy}"/>
-                <Text text="{goodsIssueItems>postingDateTime}"/>
-                <Text text="{goodsIssueItems>createdDateTime}"/>
+                <!-- <Text text="{goodsIssueItems>postingDateTime}"/> -->
+                <Text text="{ path: 'goodsIssueItems>postingDateTime', formatter: '.formatter.formatSingleDate' }" />
+                <!-- <Text text="{goodsIssueItems>createdDateTime}"/> -->
+                <Text text="{ path: 'goodsIssueItems>createdDateTime', formatter: '.formatter.formatDateAndTime' }" />
                 <Text text="{goodsIssueItems>storageLocation}"/>
                 <Text text="{goodsIssueItems>comments}"/>
                 <Text text="{goodsIssueItems>cancellationComments}"/>
-                <ObjectStatus text="{goodsIssueItems>status}"/>
-                <Button text="Cancel" press="onCancelConfirmationPress">
+                <!-- <ObjectStatus text="{goodsIssueItems>status}"/> -->
+                <Text text="{path: 'goodsIssueItems>status', formatter: '.formatter.formatExecutionStatus'}" />
+                <Button text="{i18n>cancelButton}" press="onCancelConfirmationPress">
                     <customData>
                         <core:CustomData key="cancelType" value='GI'/>
                         <core:CustomData key="dataModelName" value='goodsIssueItems'/>

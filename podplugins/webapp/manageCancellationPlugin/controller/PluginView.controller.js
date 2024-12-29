@@ -6,9 +6,10 @@ sap.ui.define(
     'sap/base/Log',
     'sap/m/TablePersoController',
     'sap/m/Token',
-    '../util/formatter'
+    '../util/formatter',
+    "sap/ui/core/Fragment",
   ],
-  function(JSONModel, PluginViewController, PlantSettings, Log, TablePersoController, Token, Formatter) {
+  function(JSONModel, PluginViewController, PlantSettings, Log, TablePersoController, Token, Formatter, Fragment) {
     'use strict';
 
     var oLogger = Log.getLogger('resourceListPlugin', Log.Level.INFO);
@@ -301,7 +302,54 @@ sap.ui.define(
           }
           // Return the input as-is if it's a string or falsy
           return oDate;
-        }
+        },
+        onOrderListGroupingBtnPress: function () {
+          var oView = this.getView();
+          if (!this._oFilterDialog) {
+              Fragment.load({
+                  id: oView.getId(),
+                  name: "stellium.ext.podplugins.manageCancellationPlugin.view.fragments.GroupSettingsDialog",
+                  controller: this
+              }).then(function (oDialog) {
+                  this._oFilterDialog = oDialog;
+                  oView.addDependent(this._oFilterDialog);
+                  this._oFilterDialog.open();
+              }.bind(this));
+          } else {
+              this._oFilterDialog.open();
+          }
+      },
+      
+      onConfirmGroup: function (oEvent) {
+          var oTable = this.byId("idOrdersTable");
+          var mParams = oEvent.getParameters();
+          var sGroupKey;
+          if (mParams.groupItem) {
+              sGroupKey = mParams.groupItem.getKey();
+          } else {
+              oTable.getBinding("items").sort(null);
+              return;
+          }
+          var oBinding = oTable.getBinding("items");
+          oBinding.sort(new sap.ui.model.Sorter(sGroupKey, mParams.groupDescending, function (oContext) {
+              var sValue;        
+              if (sGroupKey === "shopOrder") {
+                  sValue = oContext.getProperty(sGroupKey + "/shopOrder");
+              } else {
+                  sValue = oContext.getProperty(sGroupKey);
+              }
+              return {
+                  key: sValue,
+                  text: sValue,
+              };
+          }));
+      },
+      
+      onCancelGroup: function () {
+          sap.m.MessageToast.show("Group action canceled.");
+      },
+
+
       }
     );
 

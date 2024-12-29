@@ -67,6 +67,58 @@ sap.ui.define(['sap/ui/core/format/DateFormat', 'sap/ui/core/date/UI5Date', 'sap
           (e = e.replace(RegExp.$1, RegExp.$1.length === 1 ? a[r] : ('00' + a[r]).substr(('' + a[r]).length)));
       }
       return e;
+    },
+    formatSingleDate: function (sDate) {
+      if (!sDate) return "";
+      const oDate = new Date(sDate);
+      const oDateFormat = DateFormat.getDateInstance({
+          pattern: "MMM dd, yyyy"
+      });
+      return oDateFormat.format(oDate);
+  },
+  formatExecutionStatus: function (sStatus) {
+    switch (sStatus) {
+        case "ACTIVE":
+            return "Active";
+        case "NOT_IN_EXECUTION":
+            return "Not In Execution";
+        case "POSTED_IN_DM":
+            return "Posted"
+        case "POSTED_TO_TARGET_SYS":
+            return "Posted"
+        case "CONF_SUCCESS":
+          return "Posted"
+        default:
+            return sStatus;
     }
+},
+formatBatchNumber: function (sBatch) {
+  if(! sBatch){
+      return "–";
+  }
+      return sBatch;
+  },
+  formatDateAndTime: function (sDateTime) {
+    if (!sDateTime) {
+        return "";
+    }
+    const oDate = new Date(sDateTime);
+    // Check if the date is valid
+    if (isNaN(oDate)) {
+        return sDateTime;
+    }
+    
+    // Format the date to "MMM dd, yyyy, hh:mm:ss AM/PM" format
+    const options = {
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true,
+    };
+    return oDate.toLocaleString("en-US", options);
+}
   };
 });

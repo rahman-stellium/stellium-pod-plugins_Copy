@@ -50,7 +50,7 @@
                     items="{masterList>/}">
                     <headerToolbar>
                         <Toolbar id="idOrdersTableToolbar">
-                            <Title id="idOrdersTableTitle" text="Orders" />
+                            <Title id="idOrdersTableTitle" text="{orderListTitle>/title}" />
                             <ToolbarSpacer id="idOrdersTableSpacer" />
                             <Button id="idOrdersTableGroupStgBtn" 
                                 icon="sap-icon://group-2" 
