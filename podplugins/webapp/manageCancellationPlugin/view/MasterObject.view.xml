@@ -168,7 +168,12 @@
                                     <Text text="{confirmationItems>reasonCode} / {activityConfirmationItem>reasonCodeDescription}" />
                                     <Text text="{confirmationItems>workCenter}" />
                                     <Text text="{confirmationItems>resource}" />
-                                    <Button text="{i18n>cancelButton}" press=".onCancelConfirmationPress">
+                                    <Button text="{i18n>cancelButton}" 
+                                        press=".onCancelConfirmationPress" 
+                                        visible="{
+                                            path: 'confirmationItems>status',
+                                            formatter:'.formatter.cancelConfirmationVisiblityFormatter'
+                                        }">
                                         <customData>
                                             <core:CustomData key="cancelType" value='ActQtyCombined'/>
                                             <core:CustomData key="dataModelName" value='FINISH_GOOD'/>

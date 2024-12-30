@@ -163,6 +163,35 @@ sap.ui.define(['sap/ui/core/format/DateFormat', 'sap/ui/core/date/UI5Date', 'sap
           formattedText = this.getI18nText('status.cancellationFailed');
       }
       return formattedText;
+    },
+
+    cancelConfirmationVisiblityFormatter: function(status) {
+      switch (status) {
+        case 'POSTED_IN_DMC':
+        case 'POSTED_IN_DM':
+        case 'POSTED_TO_TARGET_SYS':
+        case 'FAILED_TO_POST_TO_TARGET_SYS':
+        case 'CONFIRMATION_FAIL':
+        case 'CONF_PENDING':
+        case 'CONF_SUCCESS':
+        case 'CONF_FAILED':
+        case 'CONFIRMATION_PENDING':
+        case 'CONFIRMATION_SENT':
+        case 'SENT_TO_S4':
+          return true;
+        case 'CANCELLATION_POSTED_IN_DMC':
+        case 'CANCEL_FAILED':
+        case 'CANCEL_SUCCESS':
+        case 'CANCELLATION_SENT':
+        case 'CANCEL_PENDING':
+        case 'CANCELLATION_PENDING':
+        case 'CANCELLED_IN_DM':
+        case 'CANCELLATION_POSTED_TO_TARGET_SYS':
+        case 'CANCELLATION_FAILED_TO_POST_TO_TARGET_SYS':
+          return false;
+        default:
+          return true;
+      }
     }
   };
 });
