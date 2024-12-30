@@ -10,28 +10,59 @@
                 placeholder="Search" 
                 liveChange="onGR_BP_Search" 
                 width="10rem" />
-            <Button icon="sap-icon://action-settings" press="onGoodsReceiptBPSettingsBtnPress" tooltip="Settings" visible="false"/>
+            <Button icon="sap-icon://action-settings" press="onGoodsReceiptBPSettingsBtnPress" tooltip="Settings" visible="true"/>
         </OverflowToolbar>
     </headerToolbar>
         <columns>
-    <Column><Text text="{i18n>inventoryId}"/></Column>
-    <Column minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>batchId}"/></Column>
-    <Column minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>huNumber}"/></Column>
-    <Column minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>warehouseNumber}"/></Column>
-    <Column minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>productionSupplyArea}"/></Column>
-    <Column minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>storageBin}"/></Column>
-    <Column minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>material}"/></Column>
-    <Column minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>quantity}"/></Column>
-    <Column minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>postedBy}"/></Column>
-    <Column minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>postingDate}"/></Column>
-    <Column minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>createdOn}"/></Column>
-    <Column minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>storageLocation}"/></Column>
-    <Column minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>comments}"/></Column>
-    <Column minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>cancellationReason}"/></Column>
-    <Column><Text text="{i18n>status}"/></Column>
-    <Column><Text text="{i18n>action}"/></Column>
-</columns>
-
+            <Column id="inventoryId_GR_BP_Col">
+                <Text text="{i18n>inventoryId}" />
+            </Column>
+            <Column id="batchId_GR_BP_Col" minScreenWidth="Desktop" demandPopin="true">
+                <Text text="{i18n>batchId}" />
+            </Column>
+            <Column id="huNumber_GR_BP_Col" minScreenWidth="Desktop" demandPopin="true">
+                <Text text="{i18n>huNumber}" />
+            </Column>
+            <Column id="warehouseNumber_GR_BP_Col" minScreenWidth="Desktop" demandPopin="true">
+                <Text text="{i18n>warehouseNumber}" />
+            </Column>
+            <Column id="productionSupplyArea_GR_BP_Col" minScreenWidth="Desktop" demandPopin="true">
+                <Text text="{i18n>productionSupplyArea}" />
+            </Column>
+            <Column id="storageBin_GR_BP_Col" minScreenWidth="Desktop" demandPopin="true">
+                <Text text="{i18n>storageBin}" />
+            </Column>
+            <Column id="material_GR_BP_Col" minScreenWidth="Desktop" demandPopin="true">
+                <Text text="{i18n>material}" />
+            </Column>
+            <Column id="quantity_GR_BP_Col" minScreenWidth="Desktop" demandPopin="true">
+                <Text text="{i18n>quantity}" />
+            </Column>
+            <Column id="postedBy_GR_BP_Col" minScreenWidth="Desktop" demandPopin="true">
+                <Text text="{i18n>postedBy}" />
+            </Column>
+            <Column id="postingDate_GR_BP_Col" minScreenWidth="Desktop" demandPopin="true">
+                <Text text="{i18n>postingDate}" />
+            </Column>
+            <Column id="createdOn_GR_BP_Col" minScreenWidth="Desktop" demandPopin="true">
+                <Text text="{i18n>createdOn}" />
+            </Column>
+            <Column id="storageLocation_GR_BP_Col" minScreenWidth="Desktop" demandPopin="true">
+                <Text text="{i18n>storageLocation}" />
+            </Column>
+            <Column id="comments_GR_BP_Col" minScreenWidth="Desktop" demandPopin="true">
+                <Text text="{i18n>comments}" />
+            </Column>
+            <Column id="cancellationReason_GR_BP_Col" minScreenWidth="Desktop" demandPopin="true">
+                <Text text="{i18n>cancellationReason}" />
+            </Column>
+            <Column id="status_GR_BP_Col">
+                <Text text="{i18n>status}" />
+            </Column>
+            <Column id="action_GR_BP_Col">
+                <Text text="{i18n>action}" />
+            </Column>
+        </columns>
         <items>
            <ColumnListItem>
                 <VBox>
@@ -68,7 +99,7 @@
                 <Text text="{BY_PRODUCT>cancellationComments}"/>  
                 <!-- <ObjectStatus text="{BY_PRODUCT>status}"/> -->
                 <Text text="{path: 'CO_PRODUCT>status', formatter: '.formatter.formatExecutionStatus'}" />
-                <Button text="{i18n>cancelButton}" press="onCancelConfirmationPress">
+                <Button text="{i18n>cancelButton}" press="onCancelConfirmationPress" visible="{data>/authorizedToCancel}">
                     <customData>
                         <core:CustomData key="cancelType" value='GR'/>
                         <core:CustomData key="dataModelName" value='BY_PRODUCT'/>

@@ -101,31 +101,31 @@ sap.ui.define(
           //Create table settings
           this._oTableSettings = new TablePersoController({
             table: this.byId('idConfirmationsTable'),
-            componentName: 'settings',
+            componentName: 'confirmations',
             persoService: TablePersonalizeService
           }).activate();
 
           this.goodsIssueTableSettings = new TablePersoController({
             table: this.byId('goodsIssueTable'),
-            componentName: 'settings',
+            componentName: 'goodsIssues',
             persoService: TablePersonalizeService
           }).activate();
 
           this.goodsReceiptFinishGoodTableSettings = new TablePersoController({
             table: this.byId('goodsReceiptFinishGoodTable'),
-            componentName: 'settings',
+            componentName: 'GoodsReceiptfinishedGoods',
             persoService: TablePersonalizeService
           }).activate();
 
           this.goodsReceiptByProductTableSettings = new TablePersoController({
             table: this.byId('goodsReceiptByProductTable'),
-            componentName: 'settings',
+            componentName: 'GoodsReceiptByProducts',
             persoService: TablePersonalizeService
           }).activate();
 
           this.goodsReceiptCoProductTableSettings = new TablePersoController({
             table: this.byId('goodsReceiptCoProductTable'),
-            componentName: 'settings',
+            componentName: 'GoodsReceiptCoProducts',
             persoService: TablePersonalizeService
           }).activate();
 
