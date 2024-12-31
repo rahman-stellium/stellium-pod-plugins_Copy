@@ -1,5 +1,5 @@
 <mvc:View id="idMainView"
-    controllerName="stellium.ext.podplugins.manageCancellationPlugin.controller.PluginView" 
+    controllerName="stellium.ext.podpluginsCopyRahman.manageCancellationPlugin.controller.PluginView" 
     xmlns:mvc="sap.ui.core.mvc" 
     xmlns:fb="sap.ui.comp.filterbar" 
     xmlns:f="sap.f" 
@@ -18,7 +18,7 @@
                             <fb:FilterGroupItem id="idOrderSearchFGI" name="Search" label="" groupName="Group1"
                                 visibleInFilterBar="true">
                                 <fb:control>
-                                    <SearchField id="idOrderSF" />
+                                    <SearchField id="idOrderSF" search=".onOrdersSearch"/>
                                 </fb:control>
                             </fb:FilterGroupItem>
                             <fb:FilterGroupItem id="idSFCFilterFGI" name="SFC" label="SFC" groupName="Group1"

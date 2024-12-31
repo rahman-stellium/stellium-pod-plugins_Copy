@@ -38,7 +38,7 @@ sap.ui.define(
     var oLogger = Log.getLogger('resourceListPlugin', Log.Level.INFO);
 
     var oPluginViewController = PluginViewController.extend(
-      'stellium.ext.podplugins.manageCancellationPlugin.controller.MasterObject',
+      'stellium.ext.podpluginsCopyRahman.manageCancellationPlugin.controller.MasterObject',
       {
         metadata: {
           properties: {}
@@ -394,7 +394,7 @@ sap.ui.define(
 
           Fragment.load({
             id: oView.getId(),
-            name: 'stellium.ext.podplugins.manageCancellationPlugin.view.fragments.CancellationDialog',
+            name: 'stellium.ext.podpluginsCopyRahman.manageCancellationPlugin.view.fragments.CancellationDialog',
             controller: this
           }).then(function(oDialog) {
             //Handle dialog close function on escape button press
@@ -412,6 +412,8 @@ sap.ui.define(
         },
 
         onConfirmCancellationBtnPress: function() {
+          // fix to close the dialog after confirm press
+          this.byId('idConfirmCancellationDialog')?.close();
           //this.onSubmitDialogPress();
           this.onSubmitDialogPress(null,'ActQtyCombined');
         },

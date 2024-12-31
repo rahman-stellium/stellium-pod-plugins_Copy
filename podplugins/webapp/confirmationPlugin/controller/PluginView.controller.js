@@ -41,7 +41,7 @@ sap.ui.define(
     var SPAN_CONSTANT = 'XL3 L3 M3 S3';
 
     var oPluginViewController = PluginViewController.extend(
-      'stellium.ext.podplugins.confirmationPlugin.controller.PluginView',
+      'stellium.ext.podpluginsCopyRahman.confirmationPlugin.controller.PluginView',
       {
         metadata: {
           properties: {}
@@ -148,6 +148,9 @@ sap.ui.define(
           this.getView().setModel(new JSONModel({ value: [] }), 'quantitiesModel');
 
           this.prepareBusyDialog();
+          // check for save button
+          this.isActPostDataReady = false;
+          this.isQtyPostDataReady = false;
         },
 
         /**
@@ -371,6 +374,8 @@ sap.ui.define(
               }
 
               that._setShowFooterToolbar();
+              that.isActPostDataReady = true;
+              that.checkSaveButtonState();
             },
             function(oError, oHttpErrorMessage) {
               var err = oError ? oError : oHttpErrorMessage;
@@ -411,7 +416,7 @@ sap.ui.define(
               if (!that.byId('ActivityDetailsDialog')) {
                 Fragment.load({
                   id: oView.getId(),
-                  name: 'stellium.ext.podplugins.confirmationPlugin.view.fragments.ActivityDetails',
+                  name: 'stellium.ext.podpluginsCopyRahman.confirmationPlugin.view.fragments.ActivityDetails',
                   controller: that
                 }).then(function(oDialog) {
                   oDialog.setEscapeHandler(
@@ -522,7 +527,7 @@ sap.ui.define(
           if (!this.byId('reportActivityDialog')) {
             Fragment.load({
               id: oView.getId(),
-              name: 'stellium.ext.podplugins.confirmationPlugin.view.fragments.ReportActivity',
+              name: 'stellium.ext.podpluginsCopyRahman.confirmationPlugin.view.fragments.ReportActivity',
               controller: this
             }).then(
               function(oDialog) {
@@ -1077,7 +1082,7 @@ sap.ui.define(
         },
 
         handleSortButtonPressed: function() {
-          this.createViewSettingsDialog('stellium.ext.podplugins.confirmationPlugin.view.fragments.SortDialog').open();
+          this.createViewSettingsDialog('stellium.ext.podpluginsCopyRahman.confirmationPlugin.view.fragments.SortDialog').open();
         },
 
         onSortDialogConfirmButtonClicked: function(oEvent) {
@@ -1292,7 +1297,7 @@ sap.ui.define(
           if (!this.byId('reportQuantityDialog')) {
             Fragment.load({
               id: oView.getId(),
-              name: 'stellium.ext.podplugins.confirmationPlugin.view.fragments.ReportQuantity',
+              name: 'stellium.ext.podpluginsCopyRahman.confirmationPlugin.view.fragments.ReportQuantity',
               controller: this
             }).then(
               function(oDialog) {
@@ -1455,7 +1460,7 @@ sap.ui.define(
           if (this.selectReasonCodeDialog === undefined) {
             this.selectReasonCodeDialog = sap.ui.xmlfragment(
               'selectReasonCodeDialog',
-              'stellium.ext.podplugins.confirmationPlugin.view.fragments.SelectReasonCodeDialog',
+              'stellium.ext.podpluginsCopyRahman.confirmationPlugin.view.fragments.SelectReasonCodeDialog',
               this
             );
             this.getView().addDependent(this.selectReasonCodeDialog);
@@ -2006,6 +2011,8 @@ sap.ui.define(
             var scrapQuantityValue = oPostModel.getProperty('/scrapQuantity/value');
             if (yieldQuantityValue > 0 || scrapQuantityValue > 0) {
               this._enableConfirmButton();
+              this.isQtyPostDataReady = true;
+              this.checkSaveButtonState();
             }
           }
         },
@@ -2245,7 +2252,7 @@ sap.ui.define(
 
         loadReasonCodePopover: function() {
           if (!this.oReasonCodePopoverPromise) {
-            let sFragment = 'stellium.ext.podplugins.confirmationPlugin.view.fragments.ReasonCodePopover';
+            let sFragment = 'stellium.ext.podpluginsCopyRahman.confirmationPlugin.view.fragments.ReasonCodePopover';
             this.oReasonCodePopoverPromise = this.loadFragment('reasonCodePopover', sFragment, this).then(oPopover => {
               this.getView().addDependent(oPopover);
               oPopover.setModel(new sap.ui.model.json.JSONModel());
@@ -2271,7 +2278,7 @@ sap.ui.define(
           if (!this.updateReasonCodeDialog) {
             this.updateReasonCodeDialog = sap.ui.xmlfragment(
               'updateReasonCodeDialog',
-              'stellium.ext.podplugins.confirmationPlugin.view.fragments.UpdateReasonCodeDialog',
+              'stellium.ext.podpluginsCopyRahman.confirmationPlugin.view.fragments.UpdateReasonCodeDialog',
               this
             );
             this.getView().addDependent(this.updateReasonCodeDialog);
@@ -2516,6 +2523,24 @@ sap.ui.define(
 
         _endsWith: function(str, suffix) {
           return str.indexOf(suffix, str.length - suffix.length) !== -1;
+        },
+        // fix for save button
+        checkSaveButtonState: function () {
+          if (this.isActPostDataReady && this.isQtyPostDataReady) {
+            this.updateSaveButtonState();
+          }
+        },
+        // To update save button state after data gets loaded
+        updateSaveButtonState: function () {
+          var isButtonEnabled = false;
+          var saveButton = this.getView().byId("idConfPluginSaveButton");
+          // conditions for enabling the button
+          isButtonEnabled = (this.actPostData?.activityList?.length > 0 &&
+            (this.qtyPostData?.yieldQuantity?.value > 0 || this.qtyPostData?.scrapQuantity?.value > 0));
+          saveButton.setEnabled(isButtonEnabled);
+          // Reset the flags
+          this.isActPostDataReady = false;
+          this.isQtyPostDataReady = false;
         }
       }
     );

@@ -46,6 +46,21 @@ sap.ui.define(
 
         return sUOM ? `${iFormattedValue} ${sUOM}` : iFormattedValue;
       },
+      showValueWithUomDecimals: function(sValue, sUOM) {
+        if (!sValue) {
+            return '0.000';
+        }
+        let oDecimalNumberFormat = NumberFormat.getFloatInstance({
+            groupingEnabled: true,
+            style: 'standard',
+            parseAsString: true,
+            maxFractionDigits: 3,
+            minFractionDigits: 3
+        });
+        var iFormattedValue = oDecimalNumberFormat.format(Number(sValue));
+        return sUOM ? `${iFormattedValue} ${sUOM}` : iFormattedValue;
+    },
+    
 
       formatDate: function(oDate) {
         var DateInstance = DateFormat.getDateInstance({
