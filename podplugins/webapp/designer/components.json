@@ -1,52 +1,24 @@
 {
   "components": [
+    
     {
-      "id": "stelliumResourceListPlugin",
+      "id": "stelliumConfirmationPlugin_Copy_Rahman",
       "type": "VIEW_PLUGIN",
       "allowMultipleInstances": false,
-      "name": "stellium.ext.podplugins.resourceListPlugin",
-      "propertyEditor": "stellium.ext.podplugins.resourceListPlugin.builder.PropertyEditor",
-      "i18n": "stellium.ext.podplugins.resourceListPlugin.i18n.i18n",
+      "name": "stellium.ext.podpluginsCopyRahman.confirmationPlugin",
+      "propertyEditor": "stellium.ext.podpluginsCopyRahman.confirmationPlugin.builder.PropertyEditor",
+      "i18n": "stellium.ext.podpluginsCopyRahman.confirmationPlugin.i18n.i18n",
       "productionProcessEnabled": false,
       "supportedPodTypes": ["WORK_CENTER", "OPERATION", "ORDER", "OTHER", "MONITOR"]
     },
+   
     {
-      "id": "stelliumResourceGraphPlugin",
+      "id": "stelliumCancelConfirmationPlugin_Copy_Rahman",
       "type": "VIEW_PLUGIN",
       "allowMultipleInstances": false,
-      "name": "stellium.ext.podplugins.resourceGraphPlugin",
-      "propertyEditor": "stellium.ext.podplugins.resourceGraphPlugin.builder.PropertyEditor",
-      "i18n": "stellium.ext.podplugins.resourceGraphPlugin.i18n.i18n",
-      "productionProcessEnabled": false,
-      "supportedPodTypes": ["WORK_CENTER", "OPERATION", "ORDER", "OTHER", "MONITOR"]
-    },
-    {
-      "id": "stelliumConfirmationPlugin",
-      "type": "VIEW_PLUGIN",
-      "allowMultipleInstances": false,
-      "name": "stellium.ext.podplugins.confirmationPlugin",
-      "propertyEditor": "stellium.ext.podplugins.confirmationPlugin.builder.PropertyEditor",
-      "i18n": "stellium.ext.podplugins.confirmationPlugin.i18n.i18n",
-      "productionProcessEnabled": false,
-      "supportedPodTypes": ["WORK_CENTER", "OPERATION", "ORDER", "OTHER", "MONITOR"]
-    },
-    {
-      "id": "stelliumPackingPlugin",
-      "type": "VIEW_PLUGIN",
-      "allowMultipleInstances": false,
-      "name": "stellium.ext.podplugins.packingPlugin",
-      "propertyEditor": "stellium.ext.podplugins.packingPlugin.builder.PropertyEditor",
-      "i18n": "stellium.ext.podplugins.packingPlugin.i18n.i18n",
-      "productionProcessEnabled": false,
-      "supportedPodTypes": ["WORK_CENTER", "OPERATION", "ORDER", "OTHER", "MONITOR"]
-    },
-    {
-      "id": "stelliumCancelConfirmationPlugin",
-      "type": "VIEW_PLUGIN",
-      "allowMultipleInstances": false,
-      "name": "stellium.ext.podplugins.manageCancellationPlugin",
-      "propertyEditor": "stellium.ext.podplugins.manageCancellationPlugin.builder.PropertyEditor",
-      "i18n": "stellium.ext.podplugins.manageCancellationPlugin.i18n.i18n",
+      "name": "stellium.ext.podpluginsCopyRahman.manageCancellationPlugin",
+      "propertyEditor": "stellium.ext.podpluginsCopyRahman.manageCancellationPlugin.builder.PropertyEditor",
+      "i18n": "stellium.ext.podpluginsCopyRahman.manageCancellationPlugin.i18n.i18n",
       "productionProcessEnabled": false,
       "supportedPodTypes": ["WORK_CENTER", "OPERATION", "ORDER", "OTHER", "MONITOR"]
     }

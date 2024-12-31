@@ -15,7 +15,7 @@ sap.ui.define(
     var oLogger = Log.getLogger('resourceListPlugin', Log.Level.INFO);
 
     var oPluginViewController = PluginViewController.extend(
-      'stellium.ext.podplugins.manageCancellationPlugin.controller.PluginView',
+      'stellium.ext.podpluginsCopyRahman.manageCancellationPlugin.controller.PluginView',
       {
         metadata: {
           properties: {}
@@ -308,7 +308,7 @@ sap.ui.define(
           if (!this._oFilterDialog) {
               Fragment.load({
                   id: oView.getId(),
-                  name: "stellium.ext.podplugins.manageCancellationPlugin.view.fragments.GroupSettingsDialog",
+                  name: "stellium.ext.podpluginsCopyRahman.manageCancellationPlugin.view.fragments.GroupSettingsDialog",
                   controller: this
               }).then(function (oDialog) {
                   this._oFilterDialog = oDialog;

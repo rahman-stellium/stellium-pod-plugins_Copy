@@ -3,12 +3,12 @@ sap.ui.define([
 ], function (PropertyEditor) {
     "use strict";
 
-    var oPropertyEditor = PropertyEditor.extend("stellium.ext.podplugins.manageCancellationPlugin.builder.PropertyEditor", {
+    var oPropertyEditor = PropertyEditor.extend("stellium.ext.podpluginsCopyRahman.manageCancellationPlugin.builder.PropertyEditor", {
         constructor: function (sId, mSettings) {
             PropertyEditor.apply(this, arguments);
             this.setI18nKeyPrefix("resourceListPlugin.");
-            this.setResourceBundleName("stellium.ext.podplugins.manageCancellationPlugin.i18n.builder");
-            this.setPluginResourceBundleName("stellium.ext.podplugins.manageCancellationPlugin.i18n.i18n");
+            this.setResourceBundleName("stellium.ext.podpluginsCopyRahman.manageCancellationPlugin.i18n.builder");
+            this.setPluginResourceBundleName("stellium.ext.podpluginsCopyRahman.manageCancellationPlugin.i18n.i18n");
         },
 
         addPropertyEditorContent: function (oPropertyFormContainer) {

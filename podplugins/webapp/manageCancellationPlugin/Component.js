@@ -4,7 +4,7 @@ sap.ui.define(['sap/dm/dme/podfoundation/component/production/ProductionUICompon
   /**
      * 
      */
-  var Component = ProductionUIComponent.extend('stellium.ext.podplugins.manageCancellationPlugin.Component', {
+  var Component = ProductionUIComponent.extend('stellium.ext.podpluginsCopyRahman.manageCancellationPlugin.Component', {
     metadata: {
       manifest: 'json'
     },

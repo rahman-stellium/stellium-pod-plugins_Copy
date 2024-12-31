@@ -5,7 +5,7 @@
   "main": "podplugins",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "deploy": "mbt build && cf deploy ./mta_archives/SMDEVPluginsMTA_0.0.1.mtar"
+    "deploy": "mbt build && cf deploy ./mta_archives/SMDEVPluginsMTA_COPY_RAHMAN_0.0.1.mtar"
   },
   "author": "shad.musthafa@stellium.com",
   "license": "ISC"

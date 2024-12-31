@@ -1,6 +1,6 @@
 {
     "sap.app": {
-        "id": "stellium.ext.podplugins.confirmationPlugin",
+        "id": "stellium.ext.podpluginsCopyRahman.confirmationPlugin",
         "type": "component",
         "applicationVersion": {
             "version": "1.0.0"
@@ -10,7 +10,7 @@
 
     "sap.ui5": {
         "rootView": {
-            "viewName": "stellium.ext.podplugins.confirmationPlugin.view.PluginView",
+            "viewName": "stellium.ext.podpluginsCopyRahman.confirmationPlugin.view.PluginView",
             "type": "XML",
             "id": "confirmationPlugin"
         },
@@ -23,7 +23,7 @@
             "i18n": {
                 "type": "sap.ui.model.resource.ResourceModel",
                 "settings": {
-                    "bundleName": "stellium.ext.podplugins.confirmationPlugin.i18n.i18n"
+                    "bundleName": "stellium.ext.podpluginsCopyRahman.confirmationPlugin.i18n.i18n"
                 }
             }
         }

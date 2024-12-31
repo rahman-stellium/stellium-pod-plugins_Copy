@@ -1,8 +1,8 @@
 _schema-version: '3.2'
-ID: SMDEVPluginsMTA
+ID: SMDEVPluginsMTA_COPY_RAHMAN
 version: 0.0.1
 modules:
- - name: stellium-podplugins
+ - name: stellium-podplugins_COPY_RAHMAN
    type: html5
    path: podplugins
    parameters:
@@ -23,20 +23,20 @@ modules:
                      \"Content-Type\",\"x-dme-plant\",\"x-dme-industry-type\",\"x-features\"]}]"
    build-parameters:
     supported-platforms: [CF]
-   requires:
-    - name: uaa_SMDEVPluginsMTA
-    - name: dest_SMDEVPluginsMTA
-resources:
- - name: uaa_SMDEVPluginsMTA
-   parameters:
-      path: ./xs-security.json
-      service-plan: application
-      service: xsuaa
-   type: org.cloudfoundry.managed-service
+#    requires:
+#     - name: uaa_SMDEVPluginsMTA
+#     - name: dest_SMDEVPluginsMTA
+# resources:
+#  - name: uaa_SMDEVPluginsMTA
+#    parameters:
+#       path: ./xs-security.json
+#       service-plan: application
+#       service: xsuaa
+#    type: org.cloudfoundry.managed-service
 
- - name: dest_SMDEVPluginsMTA
-   parameters:
-      service-plan: lite
-      service: destination
-   type: org.cloudfoundry.managed-service
+#  - name: dest_SMDEVPluginsMTA
+#    parameters:
+#       service-plan: lite
+#       service: destination
+#    type: org.cloudfoundry.managed-service
 

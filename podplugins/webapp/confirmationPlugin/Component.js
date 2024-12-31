@@ -6,7 +6,7 @@ sap.ui.define([
     /**
      * 
      */
-    var Component = ProductionUIComponent.extend("stellium.ext.podplugins.confirmationPlugin.Component", {
+    var Component = ProductionUIComponent.extend("stellium.ext.podpluginsCopyRahman.confirmationPlugin.Component", {
         metadata : {
             manifest : "json"
         }

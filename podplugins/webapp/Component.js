@@ -1,11 +1,11 @@
 sap.ui.define([
     "sap/ui/core/UIComponent",
     "sap/ui/Device",
-    "stellium/ext/podplugins/model/models"
+    "stellium/ext/podpluginsCopyRahman/model/models"
 ], function (UIComponent, Device, models) {
     "use strict";
 
-    return UIComponent.extend("stellium.ext.podplugins.Component", {
+    return UIComponent.extend("stellium.ext.podpluginsCopyRahman.Component", {
 
         metadata: {
             manifest: "json"

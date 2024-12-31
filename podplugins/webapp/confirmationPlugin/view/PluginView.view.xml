@@ -1,4 +1,4 @@
-<mvc:View controllerName="stellium.ext.podplugins.confirmationPlugin.controller.PluginView" xmlns:l="sap.ui.layout"
+<mvc:View controllerName="stellium.ext.podpluginsCopyRahman.confirmationPlugin.controller.PluginView" xmlns:l="sap.ui.layout"
     xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m">
     <Panel id="podModelPluginPanel" width="100%" height="100%" expandable="false" expanded="true"
         accessibleRole="Region" backgroundDesign="Transparent">
@@ -34,7 +34,7 @@
                             <Text
                                 text="{parts : ['activityId','activityText'], formatter:'.oFormatter.showActivityIdWithText'}" />
                             <Text
-                                text="{parts : ['targetQuantity/value','targetQuantity/unitOfMeasure/uom'],formatter:'.oFormatter.showValueWithUom'}" />
+                                text="{parts : ['targetQuantity/value','targetQuantity/unitOfMeasure/uom'],formatter:'.oFormatter.showValueWithUomDecimals'}" />
                             <Text
                                 text="{parts : ['actualQuantity/value','actualQuantity/unitOfMeasure/uom'],formatter:'.oFormatter.showValueWithUom'}" />
                             <Button text="{i18n>Postings}" tooltip="{i18n>Postings}" class="sapUiSmallMarginBegin"
@@ -165,7 +165,7 @@
                 <ToolbarSpacer id="idConfPluginFooterToolbarSpacer" />
                 <Button id="idConfPluginSaveButton" 
                     type="Emphasized"
-                    text="Save"
+                    text="Save" enabled="false"
                     press=".onConfPluginSave"/>
                 <Button id="idConfPluginCancelButton"
                     type="Default"

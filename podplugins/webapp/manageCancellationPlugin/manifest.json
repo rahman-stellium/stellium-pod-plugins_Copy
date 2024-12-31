@@ -1,6 +1,6 @@
 {
   "sap.app": {
-    "id": "stellium.ext.podplugins.manageCancellationPlugin",
+    "id": "stellium.ext.podpluginsCopyRahman.manageCancellationPlugin",
     "type": "component",
     "applicationVersion": {
       "version": "1.0.0"
@@ -10,7 +10,7 @@
 
   "sap.ui5": {
     "rootView": {
-      "viewName": "stellium.ext.podplugins.manageCancellationPlugin.view.PluginView",
+      "viewName": "stellium.ext.podpluginsCopyRahman.manageCancellationPlugin.view.PluginView",
       "type": "XML",
       "id": "resourceListPlugin"
     },
@@ -25,7 +25,7 @@
       "i18n": {
         "type": "sap.ui.model.resource.ResourceModel",
         "settings": {
-          "bundleName": "stellium.ext.podplugins.manageCancellationPlugin.i18n.i18n"
+          "bundleName": "stellium.ext.podpluginsCopyRahman.manageCancellationPlugin.i18n.i18n"
         }
       }
     },
@@ -33,7 +33,7 @@
       "config": {
         "routerClass": "sap.m.routing.Targets",
         "viewType": "XML",
-        "viewPath": "stellium.ext.podplugins.manageCancellationPlugin.view",
+        "viewPath": "stellium.ext.podpluginsCopyRahman.manageCancellationPlugin.view",
         "controlId": "idPage",
         "controlAggregation": "content",
         "async": true
