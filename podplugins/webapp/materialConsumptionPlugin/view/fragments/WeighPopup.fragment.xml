@@ -18,6 +18,7 @@
 <f:ColumnElementData cellsSmall="5" cellsLarge="3"/>
 </layoutData>
 </Input>
+<!-- fix for open weight Dialog replace && with &amp;&amp; -->
 <Input id="inStorageLocation" textAlign="Right" enabled="{=!${weighingModel>/batchManaged} &amp;&amp; ${weighingModel>/materialType} !== 'PIPELINE'}" showValueHelp="true" valueHelpOnly="true" valueHelpRequest="showStorageLocationDetails" value="{weighingModel>/storageLocation}">
 <layoutData>
 <f:ColumnElementData cellsSmall="5" cellsLarge="3"/>

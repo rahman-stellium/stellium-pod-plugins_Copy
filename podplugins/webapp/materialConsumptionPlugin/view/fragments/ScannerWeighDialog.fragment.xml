@@ -23,6 +23,7 @@
 <f:ColumnElementData cellsSmall="5" cellsLarge="3"/>
 </layoutData>
 </Input>
+<!-- fix for Scan weight Dialog replace && with &amp;&amp; -->
 <Input id="inScanWeighStorageLocation" textAlign="Right" enabled="{=!${scanWeighingModel>/batchManaged} &amp;&amp; ${scanWeighingModel>/materialType} !== 'PIPELINE'}" showValueHelp="true" valueHelpOnly="true" valueHelpRequest="showStorageLocationDetails" value="{scanWeighingModel>/storageLocation}">
 <layoutData>
 <f:ColumnElementData cellsSmall="5" cellsLarge="3"/>

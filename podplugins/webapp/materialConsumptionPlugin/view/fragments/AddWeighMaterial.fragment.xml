@@ -22,6 +22,7 @@
 <f:ColumnElementData cellsSmall="5" cellsLarge="3"/>
 </layoutData>
 </Input>
+<!-- fix for Add weight Dialog replace && with &amp;&amp; -->
 <Input id="inAddWeighStorageLocation" textAlign="Right" enabled="{=!${addWeighingModel>/batchManaged} &amp;&amp; ${addWeighingModel>/materialType} !== 'PIPELINE'}" showValueHelp="true" valueHelpOnly="true" valueHelpRequest="showStorageLocationDetails" value="{addWeighingModel>/storageLocation}">
 <layoutData>
 <f:ColumnElementData cellsSmall="5" cellsLarge="3"/>
