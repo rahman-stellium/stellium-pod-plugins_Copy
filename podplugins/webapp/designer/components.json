@@ -31,6 +31,16 @@
       "i18n": "stellium.ext.podpluginsCopyRahman.materialConsumptionPlugin.i18n.i18n",
       "productionProcessEnabled": false,
       "supportedPodTypes": ["WORK_CENTER", "OPERATION", "ORDER", "OTHER", "MONITOR"]
+    },
+    {
+      "id": "stellium_BatchCorrection_Copy_Rahman",
+      "type": "VIEW_PLUGIN",
+      "allowMultipleInstances": false,
+      "name": "stellium.ext.podpluginsCopyRahman.batchCorrection",
+      "propertyEditor": "stellium.ext.podpluginsCopyRahman.batchCorrection.builder.PropertyEditor",
+      "i18n": "stellium.ext.podpluginsCopyRahman.batchCorrection.i18n.i18n",
+      "productionProcessEnabled": false,
+      "supportedPodTypes": ["WORK_CENTER", "OPERATION", "ORDER", "OTHER", "MONITOR"]
     }
   ]
 }

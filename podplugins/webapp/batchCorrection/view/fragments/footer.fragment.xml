@@ -1,0 +1,10 @@
+<core:FragmentDefinition xmlns="sap.m" xmlns:core="sap.ui.core" xmlns:l="sap.ui.layout" xmlns:f="sap.ui.layout.form" xmlns:viz="sap.viz.ui5.controls" xmlns:viz.data="sap.viz.ui5.data" xmlns:viz.feeds="sap.viz.ui5.controls.common.feeds">
+<Dialog id="idBatchDialog1" title="{i18n>WeighDialogTitle}" contentHeight="auto" contentWidth="45%" resizable="true" draggable="false" afterOpen="afterWeighingDialogOpened">
+<content>
+</content>
+<buttons>
+<Button text="{i18n>approve}" type="Accept" press=""/>
+<Button text="{i18n>reject}" type="Reject" press=""/>
+</buttons>
+</Dialog>
+</core:FragmentDefinition>

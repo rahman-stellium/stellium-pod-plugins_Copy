@@ -1,0 +1,13 @@
+/* Enter your custom styles here */
+
+.sapUiCompFilterBarItems {
+    padding: 1rem !important;
+}
+
+.background-red {
+    background-color: red !important;
+}
+
+.background-yellow {
+    background-color: yellow !important;
+}
