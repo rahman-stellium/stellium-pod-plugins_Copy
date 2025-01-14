@@ -1,0 +1,34 @@
+<core:FragmentDefinition xmlns="sap.m" xmlns:core="sap.ui.core">
+    <HBox justifyContent="SpaceAround" class="sapUiSmallMarginBottom">
+        <VBox>
+            <Label text="{i18n>batch}" />
+            <Text text="{headerModel>/batch}" />
+        </VBox>
+        <VBox>
+            <Label text="{i18n>phase}" />
+            <Text text="{headerModel>/phase}" />
+        </VBox>
+        <VBox>
+            <Label text="{i18n>material}" />
+            <Text text="{headerModel>/material}" />
+        </VBox>
+        <VBox>
+            <Label text="{i18n>materialDescription}" />
+            <Text text="{headerModel>/materialDescription}" />
+        </VBox>
+        <VBox>
+            <Label text="{i18n>plannedDate}" />
+            <Text text="{headerModel>/plannedDate}" />
+        </VBox>
+        <VBox>
+            <Label text="{i18n>workInstructions}" />
+            <Text text="{headerModel>/workInstructions}" />
+        </VBox>
+        <VBox alignItems="Start" class="sapUiSmallMarginEnd">
+            <Label text="{i18n>goodsReceiptQuantity}" />
+            <ProgressIndicator
+                displayValue="{headerModel>/goodsReceiptQuantity/value} of {headerModel>/goodsReceiptQuantity/total} {headerModel>/goodsReceiptQuantity/unit}"
+                percentValue="{headerModel>/goodsReceiptPercent}" />
+        </VBox>
+    </HBox>
+</core:FragmentDefinition>

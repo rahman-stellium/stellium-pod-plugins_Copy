@@ -23,10 +23,10 @@
                                 </fb:control>
                             </fb:FilterGroupItem>
 
-                            <fb:FilterGroupItem id="idSfcBatchC" name="chargeId" label="Charge Id" groupName="GroupBatch1"
+                            <fb:FilterGroupItem id="idSfcBatchC" name="chargeId" label="{i18n>chargeID}" groupName="GroupBatch1"
                                 visibleInFilterBar="true">
                                 <fb:control>
-                                    <Select id="idSfcSelect" change=".onSfcFilterChange" />
+                                    <ComboBox id="idSfcSelect" change=".onSfcFilterChange" />
                                 </fb:control>
                             </fb:FilterGroupItem>
 
@@ -35,11 +35,24 @@
                 </f:DynamicPageHeader>
             </f:header>
         <f:content>
+        <VBox>
+        <Panel id="idHeaderContainer" visible="true" class="sapUiResponsiveMargin" />
         <Table id="idBatchTable" items="{masterListBatch>/}" visible="true" class="tableContent" popinLayout="GridLarge">
             <headerToolbar>
                 <Toolbar width="100%">
                     <Title id="idBatchtitleText" level="H2" text="{= 'Batch Summary (' + ${masterListBatch>/}.length + ')'}" />
                     <ToolbarSpacer/>
+                    <Label text="{i18n>scaleFactor}" class="sapUiTinyMarginEnd"/>
+                    <StepInput 
+                        id="idStepInput"
+                        value="{viewModel>/stepInput/value}"
+                        min="{viewModel>/stepInput/min}"
+                        max="15"
+                        step="0.05"
+                        displayValuePrecision="3"
+                        change="onStepInputChange" 
+                        width="10rem"
+                        class="sapUiTinyMarginEnd" />
                     <Button text="{i18n>approve}" type="Accept" press="onApprove"/>
                     <Button text="{i18n>reject}" type="Reject" press="onReject"/>
                     <Text text="" />
@@ -90,13 +103,13 @@
                         />
                         </VBox>
                         
-                <Text text=""/>
-                <Text text=""/>
+                            <Text text="{masterListBatch>batchCorrectionWeight/value}" />
+                            <Text text="{masterListBatch>issueWeight/value}" />
                     </cells>
                 </ColumnListItem>
             </items>
         </Table>
-
+        </VBox>
         </f:content>
     </f:DynamicPage>    
 </Page>
