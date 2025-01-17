@@ -66,6 +66,12 @@ sap.ui.define([
           return "";
       }
   },
+  getValueWithUnit: function (value, unit) {
+    if (value === null || value === undefined || unit === null || unit === undefined) {
+        return value || "";
+    }
+    return `${value} ${unit}`;
+},
   
   };
 });

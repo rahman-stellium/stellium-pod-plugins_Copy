@@ -31,8 +31,38 @@ sap.ui.define([
             }
         });
         this.getView().setModel(oViewModel, "viewModel");
+            
+        // First Load
+            this.onRefreshPress();
+        },
+        onBeforeRenderingPlugin: function(){
+            this.subscribe('orderSelectionEvent', this.handleOrderSelectionEvent, this);
+            this.publish('requestForOrderData', { source: this, sendToAllPages: true });
+        },
+
+        handleOrderSelectionEvent:function(sChannel, sEvent, oData){
+            console.log('Selected Order Data', oData);
+            this.sOrderData = [];
+            if(oData.order){
+                this.sOrderData = oData;
+                this.onOrdersSearch(oData.order);
+            }
+            else {
+                this.onRefreshPress();
+            }
+            
         },
         onAfterRendering: function () {
+            const oUriParameters = this.getPodController()._oUriParameters;
+            const orderSelection = oUriParameters ? oUriParameters.ORDERSELECTION : null;
+            this.sOrderSelected = orderSelection;
+            if(this.sOrderSelected?.length > 0){
+                this.onOrdersSearch(this.sOrderSelected);
+            }
+            else{
+                this.onRefreshPress();
+            }
+            
         },
         applyStatusCellStyles: function () {
             const oTable = this.byId("idBatchTable");
@@ -59,10 +89,11 @@ sap.ui.define([
                 }
             });
         },
-        onOrdersSearch: async function () {
+        onOrdersSearch: async function (orderSelection) {
             this.originalData = [];
-            let sOrderValue = this.byId("idOrderFilterInput").getValue();
-            if (sOrderValue === "") {
+            //let sOrderValue = this.byId("idOrderFilterInput").getValue();
+            let sOrderValue = orderSelection
+            if (sOrderValue?.length === 0) {
                 this.getView().getModel("masterListBatch").setData([]);
                 // set sfc filter as blank
                 this.populateSfcSelect([]);
@@ -81,6 +112,9 @@ sap.ui.define([
                 this.populateSfcSelect([]);
                 this.clearHeaderFragmentData();
                 const sfcs = await this.fetchOrderDetails(sOrderValue);
+                if(!sfcs){
+                    return
+                }
                 const goodsIssueData = [];
                 const { operationActivity, stepId } = await this.fetchRoutingDetails(sOrderValue);
                 for (let sfc of sfcs) {
@@ -93,7 +127,11 @@ sap.ui.define([
                     goodsIssueData.push(...summary.lineItems);
                 }
                 // Filter goodsIssueData to include only items with componentType 'N'
-                const filteredData = goodsIssueData.filter(item => item.componentType === 'N');
+                var filteredData = goodsIssueData.filter(item => item.componentType === 'N');
+                // Filter based on sel Order Sfc - Discussion with Shad (17-JAN-2025)
+                if(this.sOrderData?.sfc){
+                filteredData = filteredData.filter(item => item.chargeId === this.sOrderData.sfc);
+                }
                 this.originalData = filteredData;
                 this.getView().getModel("masterListBatch").setData(filteredData);
                 this.applyStatusCellStyles();
@@ -166,9 +204,12 @@ sap.ui.define([
             });
         },
         fetchOrderDetails: async function (sOrderValue) {
+            if(!this.getPodController()){
+                return
+            }
             this._storedWorkCenters = "";
             var that = this;
-            let dataSourceUri = this.getPublicApiRestDataSourceUri();
+            let dataSourceUri = this.getPublicApiRestDataSourceUri();            
             let sPlant = this.getPodController().getUserPlant();
             let orderUrl = `${dataSourceUri}order/v1/orders?order=${encodeURIComponent(sOrderValue)}&plant=${sPlant}`;
             return new Promise((resolve, reject) => {
@@ -204,7 +245,8 @@ sap.ui.define([
         onSfcFilterChange: function () {
             const oSelect = this.byId("idSfcSelect");
             const sSelectedSfc = oSelect.getSelectedKey();
-            const sOrderValue = this.byId("idOrderFilterInput").getValue();
+            //const sOrderValue = this.byId("idOrderFilterInput").getValue();
+            const sOrderValue = this.sOrderSelected;
             const oMasterListBatch = this.getView().getModel("masterListBatch");
             if (sSelectedSfc) {
                 this._loadHeaderFragment(sOrderValue, sSelectedSfc);
@@ -244,12 +286,12 @@ sap.ui.define([
                 if (targetQty > 0) {
                     oItem.batchCorrectionWeight = {
                         value: parseFloat((targetQty * iScaleFactor).toFixed(3)),
-                        unitOfMeasure: oItem.targetQuantity.unitOfMeasure || ""
+                        unitOfMeasure: oItem.targetQuantity.unitOfMeasure.shortText || ""
                     };
                     if (consumedQty > 0) {
                         oItem.issueWeight = {
                             value: parseFloat((targetQty * iScaleFactor - consumedQty).toFixed(3)),
-                            unitOfMeasure: oItem.targetQuantity.unitOfMeasure || ""
+                            unitOfMeasure: oItem.consumedQuantity.unitOfMeasure.shortText || ""
                         };
                     }
                     else {
@@ -352,6 +394,26 @@ sap.ui.define([
             const oPanel = this.getView().byId("idHeaderContainer");
             oPanel.destroyContent();
         },
+        onRefreshPress: function () {
+            const fullUrl = window.location.href;
+
+            // Extract the ORDERSELECTION parameter from the full URL
+            const orderSelectionMatch = fullUrl.match(/ORDERSELECTION=([^&]*)/);
+            const orderSelection = orderSelectionMatch ? orderSelectionMatch[1] : null;
+
+            if (!orderSelection) {
+                const oUriParameters = this.getPodController()._oUriParameters;
+                orderSelection = oUriParameters?.ORDERSELECTION || null;
+            }
+            if (orderSelection) {
+                // sap.m.MessageToast.show("Order Selection: " + orderSelection);
+                this.onOrdersSearch(orderSelection);
+            } else {
+                console.log ("Order Selection parameter is missing.");
+            }
+        },
+        
+        
         
     });
 });
